@@ -1,0 +1,90 @@
+<head>
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono|Roboto:400,500" rel="stylesheet">
+  <style>
+  body {
+    padding: 0;
+    margin: 0;
+    background: #212121;
+  }
+  .code {
+    font-family: 'Roboto Mono', monospace;
+    background: #404040;
+    color: #fff;
+    border-radius: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .big_text {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    color: #fff;
+  }
+  .text {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    color: #fff;
+  }
+  a {
+      color: #4286f4;
+      -webkit-transition: color 0.5s;
+      transition: color 0.5s;
+      text-decoration: none;
+    }
+    a:hover {
+      color: #214c91;
+    }
+    .top {
+      background: #151515;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-left: 16px;
+    }
+    li {
+      margin-bottom: 4px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1 class="big_text" style="color: #fff;">Help</h1>
+  </div>
+  <div style="padding-left: 16px; padding-right: 16px; padding-bottom: 8px;">
+    <h3 class="big_text">❓ What's this API for?</h3>
+    <p class="text">This API is for fetching data from NASA's <a href="https://apod.nasa.gov/apod/astropix.html">APOD</a> website - a popular service showing the most beautiful astronomical photographs in the world. The data is returned in JSON format and can be used for many applications, such as developing mobile apps for viewing APODs. My API is much faster, has no limit regarding dates and has more functions than the official one (eg. <span class="code">thumbnail_url</span> value, returned while an APOD is a video).
+    <h3 class="big_text">💻 How to use it?</h3>
+    <p class="text">The API is very easy to use, the syntax is similar to the official API. The API's endpoint is: <span class="code" id="site"></span>. Without any parameters, the API will return the latest APOD.</p>
+    <h4 class="big_text">Available query parameters:</h4>
+    <ul>
+      <li class="text"><span class="code">date</span>: a string in YYYY-MM-DD format, when set to a date (minimum date: 1995-06-16, maximum date: today), returns an APOD from this date as a JSON object.</li>
+      <li class="text"><span class="code">start_date</span> and <span class="code">end_date</span> (you need to specify both parameters if you want to use them): strings in YYYY-MM-DD format indicating start and end of date range. All the APODs in the range will be returned as a JSON array.</li>
+      <li class="text"><span class="code">thumbs</span>: a boolean, when set to <span class="code">true</span>, a video thumbnail will be returned if the APOD is a video. Can be used in list requests.</li>
+      <li class="text"><span class="code">html_tags</span>: a boolean, when set to <span class="code">true</span>, the description will be in the original HTML format. Can be used in list requests.</li>
+    </ul>
+    <h4 class="big_text">Returned fields:</h4>
+    <ul>
+      <li class="text"><span class="code">apod_site</span>: a link to the original APOD website for the given day.</li>
+      <li class="text"><span class="code">copyright</span>: the copyright of the APOD.</li>
+      <li class="text"><span class="code">date</span>: requested date.</li>
+      <li class="text"><span class="code">description</span>: description of the APOD. It can have original HTML formatting, if <span class="code">html_tags</span> is set to <span class="code">true</span>.</li>
+      <li class="text"><span class="code">thumbnail_url</span>: if an APOD is a video, this field will have a link to video thumbnail (works for videos hosted on YouTube and Vimeo).</li>
+      <li class="text"><span class="code">url</span>: url of the image or video.</li>
+      <li class="text"><span class="code">hdurl</span>: returned if the APOD is an image. It will return the higher resolution version of the image.</li>
+      <li class="text"><span class="code">media_type</span>: depending on the APOD, it can be <span class="code">image</span>, <span class="code">video</span> or <span class="code">other</span>.</li>
+      <li class="text"><span class="code">title</span>: title of the APOD.</li>
+    </ul>
+    <p class="text"><br><br>Example: <a href="" id="link" class="code" style="color: #4286f4; background: none;"></a><br><br>This query will return all the APODs between Oct 01, 2018 and Oct 10, 2018, with video thumbnails.
+    <h3 class="big_text">💿 Software used for this API</h3>
+    <p class="text"><a href="https://nodejs.org/en/">Node.js</a> JavaScript runtime</p>
+    <p class="text"><a href="https://expressjs.com/">Express</a> web framework</p>
+    <p class="text"><a href="https://www.npmjs.com/package/request">Request</a> library</p>
+    <p class="text"><a href="https://cheerio.js.org/">Cheerio</a> library</p>
+    <p class="text">Hosted on <a href="https://heroku.com/">Heroku</a></p>
+    <p class="text" style="font-size: 0.8em; color: #777;">Made by Pawel Pleskaczynski</p>
+  </div>
+  <script type="text/javascript">
+  document.getElementById("site").innerHTML = window.location.href + "api/";
+  document.getElementById("link").href = window.location.href + "api/?start_date=2018-10-01&end_date=2018-10-10&thumbs=true";
+  document.getElementById("link").innerHTML = window.location.href + "api/?start_date=2018-10-01&end_date=2018-10-10&thumbs=true";
+  </script>
+</body>
