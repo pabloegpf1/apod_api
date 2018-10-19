@@ -1,5 +1,3 @@
-// TODO: comment the code, add documentation, make the query parameters better 
-
 const express = require("express");
 const app = express();
 const port = (process.env.PORT || 3000);
@@ -24,15 +22,19 @@ app.get("/api/", (req, res) => {
 
   if (date === undefined) {
     if (startdate !== undefined && enddate !== undefined) {
-      if (getDate(startdate) > getDate(enddate)) {
-        res.send(JSON.stringify({"error":"start_date cannot be later than end_date"}))
+      if (getDate(startdate) > getDate(enddate)) { // TODO: fix it before 2095
+        res.status(400);
+        res.send(JSON.stringify({"error":"start_date cannot be later than end_date"}));
+      } else if (getDate(startdate) < getDate("1995-06-16")) {
+        res.status(404);
+        res.send(JSON.stringify({"error":"start_date cannot be before the first APOD (June 16, 1995)"}));
       } else {
         async function getAPODs() {
           var array = [];
           for (var i = 0; i <= daysDifference(startdate, enddate); i++) {
             (function(i) {
               array.push(new Promise((resolve, reject) =>
-              request("https://apod.nasa.gov/apod/ap" + getDate(subtractDate(enddate, i)) + ".html", async function(error, response, body) {
+              request("https://apod.nasa.gov/apod/ap" + getDate(subtractDate(enddate, i)).substring(2) + ".html", async function(error, response, body) {
                 if (error) reject(error);
                 const $ = cheerio.load(body);
                 var data = await load_day($, subtractDate(enddate, i), html_tags, thumbs, res);
@@ -59,14 +61,20 @@ app.get("/api/", (req, res) => {
       });
     }
   } else {
-    url = "https://apod.nasa.gov/apod/ap" + getDate(date) + ".html";
+    url = "https://apod.nasa.gov/apod/ap" + getDate(date).substring(2) + ".html";
     request(url, async function(error, response, body) {
-      const $ = cheerio.load(body);
-      async function show() {
-        var data = await load_day($, date, html_tags, thumbs, res);
-        res.send(JSON.stringify(data));
+      console.log(response.statusCode);
+      if (response.statusCode === 200) {
+        const $ = cheerio.load(body);
+        async function show() {
+          var data = await load_day($, date, html_tags, thumbs, res);
+          res.send(JSON.stringify(data));
+        }
+        show();
+      } else {
+        res.status(404);
+        res.send(JSON.stringify({"error":"An error happened while requesting the APOD. Maybe the date is wrong?"}));
       }
-      show();
     });
   }
 });
@@ -74,53 +82,148 @@ app.get("/api/", (req, res) => {
 async function load_day(body, date, html_tags, thumbs, res) {
   var data = {};
   if (date === undefined) {
-    var apod_site = "https://apod.nasa.gov/apod/astropix.html";
+    date = subtractDate(body('p').eq(1).text(), 0);
+    var apod_site = base_url + "ap" + getDate(date).substring(2) + ".html";
   } else {
-    var apod_site = base_url + "ap" + getDate(date) + ".html";
+    var apod_site = base_url + "ap" + getDate(date).substring(2) + ".html";
   }
 
   data["apod_site"] = apod_site;
 
-  var copyright = body('center').eq(1).text().trim();
-  copyright = copyright.split('\n');
-  copyright = copyright.slice(2);
-  copyright = copyright.join('\n');
-  copyright = copyright.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/(?:Image Credit & Copyright:?|Copyright:?|Credit:)/gm, "")
-  data["copyright"] = copyright.trim();
+  if (getDate(date) < getDate("1996-10-09") && getDate(date) > getDate("1995-09-21")) { // it's an APOD structured the old way
 
-  data["date"] = date;
+    var copyright = body('center').eq(0).contents().text().replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/.+:/, "").trim();
+    data["copyright"] = copyright;
 
-  if (html_tags == "true") {
-    var description = body('p').eq(2).html().replace(/<b> Explanation: <\/b>/gm, "");
-  } else {
-    var description = body('p').eq(2).text().replace(/Explanation: /gm, "");
-  }
+    data["date"] = date;
 
-  data["description"] = description.replace(/\n/gm, " ").replace(/\s{2,}/g, ' ').trim();
-
-  if (body('img').length !== 0) {
-    var img = body('img').attr("src");
-    data["url"] = base_url + img;
-
-    var hd_img = body('img').parent().attr("href");
-    data["hdurl"] = base_url + hd_img;
-
-    data["media_type"] = "image";
-  } else if (body('iframe').length !== 0) {
-    var src = body('iframe').eq(0).attr("src");
-    if (thumbs === "true") {
-      data["thumbnail_url"] = await getThumbs(src);
+    if (html_tags == "true") {
+      var description = body("body").html();
+      description = description.replace(/<\/b>/gm, "").replace(/<b>/gm, "").replace(/<\/p>/gm, "").replace(/<p>/gm, "").replace(/<\/center>/gm, "").replace(/<center>/gm, "");
+      description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
+      description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
+    } else {
+      var description = body("body").contents().text();
     }
-    data["url"] = src;
 
-    data["media_type"] = "video";
-  } else {
-    data["media_type"] = "other";
+    description = description.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/^.+Explanation:/, "").replace(/Tomorrow('s|&apos;s) picture:.+/, "").trim();
+    data["description"] = description;
+
+    var title = body('b').eq(0).text().trim().replace(/\n.+/gm, "");
+    data["title"] = title;
+
+    if (body('img').length !== 0) {
+      var img = body('img').attr("src");
+      data["url"] = base_url + img;
+
+      var hd_img = body('img').parent().attr("href");
+      data["hdurl"] = base_url + hd_img;
+
+      data["media_type"] = "image";
+    } else if (body('iframe').length !== 0) {
+      var src = body('iframe').eq(0).attr("src");
+      if (thumbs === "true") {
+        data["thumbnail_url"] = await getThumbs(src);
+      }
+      data["url"] = src;
+
+      data["media_type"] = "video";
+    } else {
+      data["media_type"] = "other";
+    }
+
+
+  } else if (getDate(date) <= getDate("1995-09-21") && getDate(date) >= getDate("1995-06-16")) { // it's an APOD structured the oldest way
+
+    if (html_tags == "true") {
+      var description = body("body").html();
+      description = description.replace(/<\/b>/gm, "").replace(/<b>/gm, "").replace(/<\/p>/gm, "").replace(/<p>/gm, "").replace(/<\/center>/gm, "").replace(/<center>/gm, "");
+      description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
+      description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
+    } else {
+      var description = body("body").contents().text();
+    }
+    if (getDate(date) != getDate("1995-06-16")) {
+      var copyright = description.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/^.+Credit:/, "").replace(/Explanation:.+/, "").trim();
+      data["copyright"] = copyright;
+    }
+
+    description = description.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/^.+Explanation:/, "").replace(/Tomorrow('s|&apos;s) picture:.+/, "").trim();
+
+
+    data["date"] = date;
+
+    data["description"] = description;
+
+    var title = body('b').eq(0).text().trim().replace(/\n.+/gm, "");
+
+    data["title"] = title;
+
+    if (body('img').length !== 0) {
+      var img = body('img').attr("src");
+      data["url"] = base_url + img;
+
+      var hd_img = body('img').parent().attr("href");
+      data["hdurl"] = base_url + hd_img;
+
+      data["media_type"] = "image";
+    } else if (body('iframe').length !== 0) {
+      var src = body('iframe').eq(0).attr("src");
+      if (thumbs === "true") {
+        data["thumbnail_url"] = await getThumbs(src);
+      }
+      data["url"] = src;
+
+      data["media_type"] = "video";
+    } else {
+      data["media_type"] = "other";
+    }
+
+  } else { // it's an APOD structured the new way
+
+    var copyright = body('center').eq(1).text().trim();
+    copyright = copyright.split('\n');
+    copyright = copyright.slice(2);
+    copyright = copyright.join('\n');
+    copyright = copyright.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/(?:Image Credit & Copyright:?|Copyright:?|Credit:|Credit and copyright:)/gmi, "");
+    var title = body('b').eq(0).text().trim();
+
+    data["copyright"] = copyright.trim();
+
+    data["date"] = date;
+
+    if (html_tags == "true") {
+      var description = body('p').eq(2).html().replace(/<b> Explanation: <\/b>/gm, "");
+      description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
+      description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
+    } else {
+      var description = body('p').eq(2).text().replace(/Explanation: /gm, "");
+    }
+
+    data["description"] = description.replace(/\n/gm, " ").replace(/\s{2,}/g, ' ').trim();
+
+    if (body('img').length !== 0) {
+      var img = body('img').attr("src");
+      data["url"] = base_url + img;
+
+      var hd_img = body('img').parent().attr("href");
+      data["hdurl"] = base_url + hd_img;
+
+      data["media_type"] = "image";
+    } else if (body('iframe').length !== 0) {
+      var src = body('iframe').eq(0).attr("src");
+      if (thumbs === "true") {
+        data["thumbnail_url"] = await getThumbs(src);
+      }
+      data["url"] = src;
+
+      data["media_type"] = "video";
+    } else {
+      data["media_type"] = "other";
+    }
+
+    data["title"] = title;
   }
-
-
-  var title = body('b').eq(0).text().trim();
-  data["title"] = title;
 
   return data;
 }
@@ -170,7 +273,7 @@ function getDate(date) {
   if (month.length < 2) month = '0' + month;
   if (day.length < 2) day = '0' + day;
 
-  return [year.toString().substring(2,4), month, day].join("");
+  return [year.toString(), month, day].join("");
 }
 
 function subtractDate(date, subtract) {
