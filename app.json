@@ -1,0 +1,6 @@
+{
+  "name": "APOD API",
+  "description": "An API for fetching NASA's APODs",
+  "repository": "https://github.com/PawelPleskaczynski/apod_api",
+  "keywords": ["node", "express", "astronomy", "APOD", "picture", "API", "NASA"]
+}
