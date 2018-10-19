@@ -75,11 +75,11 @@ app.get("/api/", (req, res) => {
             var data = await loader.getDay($, date, html_tags, thumbs, res);
             res.send(JSON.stringify(data));
           }
+          show();
         } else {
           res.status(404);
           res.send(JSON.stringify({"error":"No APOD for this date."}))
         }
-        show();
       });
     }
   } else {
