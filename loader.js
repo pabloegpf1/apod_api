@@ -27,7 +27,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumb
       var description = body("body").html();
       description = description.replace(/<\/b>/gm, "").replace(/<b>/gm, "").replace(/<\/p>/gm, "").replace(/<p>/gm, "").replace(/<\/center>/gm, "").replace(/<center>/gm, "");
       description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
-      description = description.replace(/\/\s/gm, "");
+      description = description.replace(/\/\s/gm, "/");
       // replace relative URLs with absolute URL for NASA websites
       description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
     } else {
@@ -83,7 +83,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumb
       var description = body("body").html();
       description = description.replace(/<\/b>/gm, "").replace(/<b>/gm, "").replace(/<\/p>/gm, "").replace(/<p>/gm, "").replace(/<\/center>/gm, "").replace(/<center>/gm, "");
       description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
-      description = description.replace(/\/\s/gm, "");
+      description = description.replace(/\/\s/gm, "/");
       // replace relative URLs with absolute URL for NASA websites
       description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
     } else {
@@ -156,7 +156,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumb
     if (html_tags == "true") {
       var description = body('p').eq(2).html().replace(/<b> Explanation: <\/b>/gm, "");
       description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
-      description = description.replace(/\/\s/gm, "");
+      description = description.replace(/\/\s/gm, "/");
       // replace relative URLs with absolute URL for NASA websites
       description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
     } else {
