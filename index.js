@@ -8,6 +8,9 @@ const base_url = "https://apod.nasa.gov/apod/";
 const dates = require('./date.js');
 const loader = require('./loader.js');
 const resize = require('./resize.js');
+const iconv = require('iconv-lite');
+
+var encoding = 'iso-8859-1';
 
 // help endpoint
 app.get("/", (req, res) => {
@@ -42,10 +45,11 @@ app.get("/api/", (req, res) => {
           for (var i = 0; i <= dates.daysDifference(startdate, enddate); i++) {
             (function(i) {
               array.push(new Promise((resolve, reject) =>
-              request("https://apod.nasa.gov/apod/ap" + dates.getDate(dates.subtractDate(enddate, i)).substring(2) + ".html", async function(error, response, body) {
+              request.get({url: "https://apod.nasa.gov/apod/ap" + dates.getDate(dates.subtractDate(enddate, i)).substring(2) + ".html", encoding: null}, async function(error, response, body) {
                 if (error) reject(error);
                 // if APOD exists, parse it, otherwise make the object empty
                 if (response.statusCode === 200) {
+                  body = iconv.decode(body, encoding);
                   const $ = cheerio.load(body);
                   var data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, res, image_thumbnail_size);
                   resolve(data);
@@ -69,9 +73,10 @@ app.get("/api/", (req, res) => {
     } else {
       // get the APOD for today
       url = "https://apod.nasa.gov/apod/astropix.html";
-      request(url, function(error, response, body) {
+      request.get({url: url, encoding: null}, function(error, response, body) {
         // if exists, parse it, otherwise throw 'not found' error
         if (response.statusCode === 200) {
+          body = iconv.decode(body, encoding);
           const $ = cheerio.load(body);
           async function show() {
             var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size);
@@ -88,9 +93,10 @@ app.get("/api/", (req, res) => {
     // if date is after the first APOD, parse the APOD, otherwise throw error
     if (dates.getDate(date) >= dates.getDate("1995-06-16")) {
       url = "https://apod.nasa.gov/apod/ap" + dates.getDate(date).substring(2) + ".html";
-      request(url, async function(error, response, body) {
+      request.get({url: url, encoding: null}, async function(error, response, body) {
         // if exists, parse it, otherwise throw 'not found' error
         if (response.statusCode === 200) {
+          body = iconv.decode(body, encoding);
           const $ = cheerio.load(body);
           async function show() {
             var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size);

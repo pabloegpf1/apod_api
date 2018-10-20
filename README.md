@@ -75,3 +75,4 @@ This query will return all the APODs between Oct 05, 2018 and Oct 10, 2018, with
 - Express.js - https://expressjs.com/
 - request - https://www.npmjs.com/package/request
 - sharp - https://www.npmjs.com/package/sharp
+- iconv-lite - https://github.com/ashtuchkin/iconv-lite
