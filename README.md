@@ -11,15 +11,17 @@ The API is very easy to use, the syntax is similar to the official API. The API'
 ##### Available query parameters:
 - `date`: a string in YYYY-MM-DD format, when set to a date (minimum date: 1995-06-16, maximum date: today), returns an APOD from this date as a JSON object.
 - `start_date` and `end_date` (you need to specify both parameters if you want to use them): strings in YYYY-MM-DD format indicating start and end of date range. All the APODs in the range will be returned as a JSON array.
+- `image_thumbnail_size`: an integer, when larger than 0, `image_thumbnail` will be returned in the JSON file (see below).
 - `thumbs`: a boolean, when set to `true`, a video thumbnail will be returned if the APOD is a video. Can be used in list requests.
 - `html_tags`: a boolean, when set to `true`, the description will be in the original HTML format. Can be used in list requests.
 
-Returned fields:
+#### Returned fields:
 - `apod_site`: a link to the original APOD website for the given day.
 - `copyright`: the copyright of the APOD.
 - `date`: requested date.
 - `description`: description of the APOD. It can have original HTML formatting, if `html_tags` is set to `true` (useful if you want to get links from the original description).
 - `thumbnail_url`: if an APOD is a video, this field will have a link to video thumbnail (works for videos hosted on YouTube and Vimeo).
+- `image_thumbnail`: returned if `image_thumbnail_size` is set to a value larger than 0, it contains relative link to smaller version of the image. Useful for thumbnails to use eg. in mobile applications.
 - `url`: url of the image or video.
 - `hdurl`: returned if the APOD is an image. It will return the higher resolution version of the image.
 - `media_type`: depending on the APOD, it can be `image`, `video` or `other`.
@@ -72,3 +74,4 @@ This query will return all the APODs between Oct 05, 2018 and Oct 10, 2018, with
 - Cheerio - https://cheerio.js.org/
 - Express.js - https://expressjs.com/
 - request - https://www.npmjs.com/package/request
+- sharp - https://www.npmjs.com/package/sharp

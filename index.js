@@ -7,6 +7,7 @@ const cheerio = require('cheerio');
 const base_url = "https://apod.nasa.gov/apod/";
 const dates = require('./date.js');
 const loader = require('./loader.js');
+const resize = require('./resize.js');
 
 // help endpoint
 app.get("/", (req, res) => {
@@ -24,6 +25,7 @@ app.get("/api/", (req, res) => {
   const thumbs = req.query.thumbs;
   const enddate = req.query.end_date;
   const startdate = req.query.start_date;
+  const image_thumbnail_size = req.query.image_thumbnail_size;
 
   if (date === undefined) {
     if (startdate !== undefined && enddate !== undefined) {
@@ -45,7 +47,7 @@ app.get("/api/", (req, res) => {
                 // if APOD exists, parse it, otherwise make the object empty
                 if (response.statusCode === 200) {
                   const $ = cheerio.load(body);
-                  var data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, res);
+                  var data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, res, image_thumbnail_size);
                   resolve(data);
                 } else {
                   data = {};
@@ -72,7 +74,7 @@ app.get("/api/", (req, res) => {
         if (response.statusCode === 200) {
           const $ = cheerio.load(body);
           async function show() {
-            var data = await loader.getDay($, date, html_tags, thumbs, res);
+            var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size);
             res.send(JSON.stringify(data));
           }
           show();
@@ -91,7 +93,7 @@ app.get("/api/", (req, res) => {
         if (response.statusCode === 200) {
           const $ = cheerio.load(body);
           async function show() {
-            var data = await loader.getDay($, date, html_tags, thumbs, res);
+            var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size);
             res.send(JSON.stringify(data));
           }
           show();
@@ -102,6 +104,34 @@ app.get("/api/", (req, res) => {
       });
     } else {
       res.send(JSON.stringify({"error":"\`date\` cannot be before the first APOD (June 16, 1995)"}))
+    }
+  }
+});
+
+// image resize endpoint
+app.get("/image/", (req, res) => {
+  if (Object.keys(req.query).length === 0) {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(400);
+    res.send(JSON.stringify({"error":"Please specify a path to APOD image"}));
+  } else {
+    const width = req.query.width;
+    const image = req.query.image;
+    if (width > 0 && image !== undefined) {
+      res.type(`image/"jpg"`);
+      res.setHeader("Content-Type", "image/jpeg");
+      // resize image if width and path are valid
+      if (image.includes("youtu.be") || image.includes("youtube") || image.includes("vimeo") || image.includes("apod.nasa.gov")) {
+        resize(image, parseInt(width)).pipe(res);
+      } else {
+        res.setHeader('Content-Type', 'application/json');
+        res.status(400);
+        res.send(JSON.stringify({"error":"Image path cannot be other than official NASA APOD website, YouTube thumbnail or Vimeo thumbnail."}));
+      }
+    } else {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(400);
+      res.send(JSON.stringify({"error":"Please specify valid width and image path"}));
     }
   }
 });

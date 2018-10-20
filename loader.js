@@ -4,7 +4,7 @@ const request = require('request');
 var exports = module.exports = {};
 const base_url = "https://apod.nasa.gov/apod/";
 
-exports.getDay = async function (body, date, html_tags, thumbs, res) {
+exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumbnail_size) {
   var data = {};
   // if date was not specified in the URL, get it from body and use it
   if (date === undefined) {
@@ -27,6 +27,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
       var description = body("body").html();
       description = description.replace(/<\/b>/gm, "").replace(/<b>/gm, "").replace(/<\/p>/gm, "").replace(/<p>/gm, "").replace(/<\/center>/gm, "").replace(/<center>/gm, "");
       description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
+      description = description.replace(/\/\s/gm, "");
       // replace relative URLs with absolute URL for NASA websites
       description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
     } else {
@@ -36,15 +37,14 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
     description = description.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/^.+Explanation:/, "").replace(/Tomorrow('s|&apos;s) picture:.+/, "").trim();
     data["description"] = description;
 
-    var title = body('b').eq(0).text().trim().replace(/\n.+/gm, "");
-    if (title === "") {
-      title = "APOD for " + date;
-    }
-    data["title"] = title;
 
     // detect if APOD is an image, video or neither of them
     if (body('img').length !== 0) {
       var img = body('img').attr("src");
+      if (image_thumbnail_size > 0) {
+        var img_thumb = "image/?image=" + base_url + img + "&width=" + image_thumbnail_size;
+        data["image_thumbnail"] = img_thumb;
+      }
       data["url"] = base_url + img;
 
       var hd_img = body('img').parent().attr("href");
@@ -53,16 +53,29 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
       data["media_type"] = "image";
     } else if (body('iframe').length !== 0) {
       var src = body('iframe').eq(0).attr("src");
-      if (thumbs === "true") {
-        data["thumbnail_url"] = await getThumbs(src);
-      }
-      data["url"] = src;
+      if (src.includes("youtu") || src.includes("youtube") || src.includes("vimeo")) {
+        if (thumbs === "true") {
+          data["thumbnail_url"] = await getThumbs(src);
+          if (image_thumbnail_size > 0) {
+            var img_thumb = "/image/?image=" + await getThumbs(src) + "&width=" + image_thumbnail_size;
+            data["image_thumbnail"] = img_thumb;
+          }
+        }
+        data["url"] = src;
 
-      data["media_type"] = "video";
+        data["media_type"] = "video";
+      } else {
+        data["media_type"] = "other";
+      }
     } else {
       data["media_type"] = "other";
     }
 
+    var title = body('b').eq(0).text().trim().replace(/\n.+/gm, "");
+    if (title === "") {
+      title = "APOD for " + date;
+    }
+    data["title"] = title;
 
   } else if (dates.getDate(date) <= dates.getDate("1995-09-21") && dates.getDate(date) >= dates.getDate("1995-06-16")) { // it's an APOD structured the oldest way
 
@@ -70,6 +83,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
       var description = body("body").html();
       description = description.replace(/<\/b>/gm, "").replace(/<b>/gm, "").replace(/<\/p>/gm, "").replace(/<p>/gm, "").replace(/<\/center>/gm, "").replace(/<center>/gm, "");
       description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
+      description = description.replace(/\/\s/gm, "");
       // replace relative URLs with absolute URL for NASA websites
       description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
     } else {
@@ -87,16 +101,14 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
 
     data["description"] = description;
 
-    var title = body('b').eq(0).text().trim().replace(/\n.+/gm, "");
-    if (title === "") {
-      title = "APOD for " + date;
-    }
-
-    data["title"] = title;
 
     // detect if APOD is an image, video or neither of them
     if (body('img').length !== 0) {
       var img = body('img').attr("src");
+      if (image_thumbnail_size > 0) {
+        var img_thumb = "image/?image=" + base_url + img + "&width=" + image_thumbnail_size;
+        data["image_thumbnail"] = img_thumb;
+      }
       data["url"] = base_url + img;
 
       var hd_img = body('img').parent().attr("href");
@@ -105,15 +117,25 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
       data["media_type"] = "image";
     } else if (body('iframe').length !== 0) {
       var src = body('iframe').eq(0).attr("src");
-      if (thumbs === "true") {
-        data["thumbnail_url"] = await getThumbs(src);
-      }
-      data["url"] = src;
+      if (src.includes("youtu") || src.includes("youtube") || src.includes("vimeo")) {
+        if (thumbs === "true") {
+          data["thumbnail_url"] = await getThumbs(src);
+          if (image_thumbnail_size > 0) {
+            var img_thumb = "/image/?image=" + await getThumbs(src) + "&width=" + image_thumbnail_size;
+            data["image_thumbnail"] = img_thumb;
+          }
+        }
+        data["url"] = src;
 
-      data["media_type"] = "video";
+        data["media_type"] = "video";
+      } else {
+        data["media_type"] = "other";
+      }
     } else {
       data["media_type"] = "other";
     }
+
+    data["title"] = title;
 
   } else { // it's an APOD structured the new way
 
@@ -134,6 +156,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
     if (html_tags == "true") {
       var description = body('p').eq(2).html().replace(/<b> Explanation: <\/b>/gm, "");
       description = description.replace(/\"ap/gm, "\"https://apod.nasa.gov/apod/ap");
+      description = description.replace(/\/\s/gm, "");
       // replace relative URLs with absolute URL for NASA websites
       description = description.replace(/(href=\")(?!http:\/\/|https:\/\/|ap)/gm, "href=\"https://apod.nasa.gov/");
     } else {
@@ -145,6 +168,10 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
     // detect if APOD is an image, video or neither of them
     if (body('img').length !== 0) {
       var img = body('img').attr("src");
+      if (image_thumbnail_size > 0) {
+        var img_thumb = "image/?image=" + base_url + img + "&width=" + image_thumbnail_size;
+        data["image_thumbnail"] = img_thumb;
+      }
       data["url"] = base_url + img;
 
       var hd_img = body('img').parent().attr("href");
@@ -153,12 +180,20 @@ exports.getDay = async function (body, date, html_tags, thumbs, res) {
       data["media_type"] = "image";
     } else if (body('iframe').length !== 0) {
       var src = body('iframe').eq(0).attr("src");
-      if (thumbs === "true") {
-        data["thumbnail_url"] = await getThumbs(src);
-      }
-      data["url"] = src;
+      if (src.includes("youtu") || src.includes("youtube") || src.includes("vimeo")) {
+        if (thumbs === "true") {
+          data["thumbnail_url"] = await getThumbs(src);
+          if (image_thumbnail_size > 0) {
+            var img_thumb = "/image/?image=" + await getThumbs(src) + "&width=" + image_thumbnail_size;
+            data["image_thumbnail"] = img_thumb;
+          }
+        }
+        data["url"] = src;
 
-      data["media_type"] = "video";
+        data["media_type"] = "video";
+      } else {
+        data["media_type"] = "other";
+      }
     } else {
       data["media_type"] = "other";
     }
