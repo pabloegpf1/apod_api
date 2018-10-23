@@ -135,6 +135,10 @@ exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumb
       data["media_type"] = "other";
     }
 
+    var title = body('b').eq(0).text().trim().replace(/\n.+/gm, "");
+    if (title === "") {
+      title = "APOD for " + date;
+    }
     data["title"] = title;
 
   } else { // it's an APOD structured the new way
