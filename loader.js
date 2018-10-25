@@ -32,7 +32,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumb
           }
         })();
       } else {
-        image_thumbnail = `${api_url}image/?image=${base_url + img}&width=${thumb_size}`;
+        image_thumbnail = `${api_url}image/?image=${base_url + img}&width=${image_thumbnail_size}`;
       }
     }
     url = base_url + img;
