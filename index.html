@@ -59,6 +59,7 @@
       <li class="text"><span class="code">date</span>: a string in YYYY-MM-DD format, when set to a date (minimum date: 1995-06-16, maximum date: today), returns an APOD from this date as a JSON object.</li>
       <li class="text"><span class="code">start_date</span> and <span class="code">end_date</span> (you need to specify both parameters if you want to use them): strings in YYYY-MM-DD format indicating start and end of date range. All the APODs in the range will be returned as a JSON array.</li>
       <li class="text"><span class="code">image_thumbnail_size</span>: an integer, when larger than 0, <span class="code">image_thumbnail</span> will be returned in the JSON file (see below).</li>
+      <li class="text"><span class="code">absolute_thumbnail_url</span>: a boolean, when set to <span class="code">true</span>, <span class="code">image_thumbnail</span>s will have absolute, not relative URLs.</li>
       <li class="text"><span class="code">thumbs</span>: a boolean, when set to <span class="code">true</span>, a video thumbnail will be returned if the APOD is a video. Can be used in list requests.</li>
       <li class="text"><span class="code">html_tags</span>: a boolean, when set to <span class="code">true</span>, the description will be in the original HTML format. Can be used in list requests.</li>
     </ul>
@@ -69,7 +70,7 @@
       <li class="text"><span class="code">date</span>: requested date.</li>
       <li class="text"><span class="code">description</span>: description of the APOD. It can have original HTML formatting, if <span class="code">html_tags</span> is set to <span class="code">true</span>.</li>
       <li class="text"><span class="code">thumbnail_url</span>: if an APOD is a video, this field will have a link to video thumbnail (works for videos hosted on YouTube and Vimeo).</li>
-      <li class="text"><span class="code">image_thumbnail</span>: returned if <span class="code">image_thumbnail_size</span> is set to a value larger than 0, it contains relative link to smaller version of the image. Useful for thumbnails to use eg. in mobile applications.</li>
+      <li class="text"><span class="code">image_thumbnail</span>: returned if <span class="code">image_thumbnail_size</span> is set to a value larger than 0, it contains relative link to smaller version of the image. Useful for thumbnails to use eg. in mobile applications. If there are more than one <span class="code">image_thumbnail_size</span> parameters set, multiple thumbnails will be returned in a JSON array in <span class="code">image_thumbnail</span> value.</li>
       <li class="text"><span class="code">url</span>: url of the image or video.</li>
       <li class="text"><span class="code">hdurl</span>: returned if the APOD is an image. It will return the higher resolution version of the image.</li>
       <li class="text"><span class="code">media_type</span>: depending on the APOD, it can be <span class="code">image</span>, <span class="code">video</span> or <span class="code">other</span>.</li>

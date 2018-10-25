@@ -29,6 +29,13 @@ app.get("/api/", (req, res) => {
   const enddate = req.query.end_date;
   const startdate = req.query.start_date;
   const image_thumbnail_size = req.query.image_thumbnail_size;
+  const absolute_img_thumb_url = req.query.absolute_thumbnail_url;
+  // get absolute API url
+  const api_url = `${req.headers.host}/`;
+  var multiple_thumbs = false;
+  if (Array.isArray(image_thumbnail_size)) {
+    multiple_thumbs = true;
+  }
 
   if (date === undefined) {
     if (startdate !== undefined && enddate !== undefined) {
@@ -51,7 +58,7 @@ app.get("/api/", (req, res) => {
                 if (response.statusCode === 200) {
                   body = iconv.decode(body, encoding);
                   const $ = cheerio.load(body);
-                  var data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, res, image_thumbnail_size);
+                  var data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
                   resolve(data);
                 } else {
                   data = {};
@@ -79,7 +86,7 @@ app.get("/api/", (req, res) => {
           body = iconv.decode(body, encoding);
           const $ = cheerio.load(body);
           async function show() {
-            var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size);
+            var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
             res.send(JSON.stringify(data));
           }
           show();
@@ -99,7 +106,7 @@ app.get("/api/", (req, res) => {
           body = iconv.decode(body, encoding);
           const $ = cheerio.load(body);
           async function show() {
-            var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size);
+            var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
             res.send(JSON.stringify(data));
           }
           show();
