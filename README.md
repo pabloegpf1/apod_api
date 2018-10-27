@@ -63,7 +63,7 @@ This query will return APOD from Dec 24, 2005, with the original HTML tags in th
 ```
 Example url: `/api/?start_date=2018-10-05&end_date=2018-10-10&thumbs=true&image_thumbnail_size=480&image_thumbnail_size=240`
 
-This query will return all the APODs between Oct 05, 2018 and Oct 10, 2018, with video thumbnails:
+This query will return all the APODs between Oct 05, 2018 and Oct 10, 2018, with video thumbnails and 480 and 240 px thumbnails of the images:
 ```
 [
    {
