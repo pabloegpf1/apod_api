@@ -28,8 +28,40 @@ The API is very easy to use, the syntax is similar to the official API. The API'
 - `media_type`: depending on the APOD, it can be `image`, `video` or `other`.
 - `title`: title of the APOD.
 
+#### Examples
+Example url: `/api/`
 
-Example: `/api/?start_date=2018-10-05&end_date=2018-10-10&thumbs=true&image_thumbnail_size=480&image_thumbnail_size=240`
+This query will return the latest available APOD, with no additional options:
+```
+{
+   "apod_site":"https://apod.nasa.gov/apod/ap181027.html",
+   "copyright":"Yuri Beletsky (Carnegie Las Campanas Observatory, TWAN)",
+   "date":"2018-10-27",
+   "description":"The best known asterism in northern skies hangs over the Canadian Rockies in this mountain and night skyscape taken last week from Banff National Park. But most remarkable is the amazing greenish airglow. With airglow visible to the eye, but not in color, the scene was captured in two exposures with a single camera, one exposure made while tracking the stars and one fixed to a tripod. Airglow emission is predominately from atmospheric oxygen atoms at extremely low densities. Commonly recorded in color by sensitive digital cameras the eerie, diffuse light is seen here in waves across the northern night. Originating at an altitude similar to aurorae, the luminous airglow is due to chemiluminescence, the production of light through chemical excitation and radiative decay. Energy for the chemical excitation is provided during daytime by the Sun's extreme ultraviolet radiation. Unlike aurorae which are limited to high latitudes, airglow can be found around the globe.",
+   "hdurl":"https://apod.nasa.gov/apod/image/1810/airglow_banff_beletsky.jpg",
+   "media_type":"image",
+   "title":"Airglow Borealis",
+   "url":"https://apod.nasa.gov/apod/image/1810/airglow_banff_beletsky1082.jpg"
+}
+```
+
+Example url: `/api/?date=2005-12-24&html_tags=true&image_thumbnail_size=450&absolute_thumbnail_url=true`
+
+This query will return APOD from Dec 24, 2005, with the original HTML tags in the text and with an absolute path to the 450px thumbnail of the image
+```
+{
+   "apod_site":"https://apod.nasa.gov/apod/ap051224.html",
+   "copyright":"Apollo 8, NASA",
+   "date":"2005-12-24",
+   "description":"In December of 1968, the <a href=\"http://www.lpi.usra.edu/expmoon/Apollo8/Apollo8.html\">Apollo 8</a> crew flew from the <a href=\"http://jv.gilead.org.il/pg/moon/\">Earth to the Moon</a> and back again. <a href=\"http://www.jsc.nasa.gov/Bios/htmlbios/borman-f.html\">Frank Borman</a>, <a href=\"http://www.jsc.nasa.gov/Bios/htmlbios/lovell-ja.html\">James Lovell</a>, and <a href=\"http://www.jsc.nasa.gov/Bios/htmlbios/anders-wa.html\">William Anders</a> were launched atop a <a href=\"http://www.apollosaturn.com/saturnv.htm\">Saturn V rocket</a> on December 21, circled the Moon ten times in their command module, and returned to Earth on December 27. The <a href=\"http://nssdc.gsfc.nasa.gov/database/MasterCatalog?sc=1968-118A\">Apollo 8</a> mission&apos;s impressive list of firsts includes: the first humans to journey to the <a href=\"http://www.nineplanets.org/luna.html\">Earth&apos;s Moon</a>, the first manned flight using the <a href=\"https://apod.nasa.gov/apod/ap010525.html\">Saturn V</a>, and the first <a href=\"http://www.lpi.usra.edu/expmoon/Apollo8/A08_Photography.html\">to photograph</a> the Earth from deep space. As the Apollo 8 command module rounded the farside of the Moon, the crew could look toward the <a href=\"https://apod.nasa.gov/apod/ap010713.html\">lunar horizon</a> and see the Earth appear to rise, due to their spacecraft&apos;s orbital motion. The <a href=\"http://www.abc.net.au/science/moon/earthrise.htm\">famous picture </a> that resulted, of a distant <a href=\"https://apod.nasa.gov/apod/ap030426.html\">blue Earth</a> above the Moon&apos;s limb, was a marvelous gift to the world.",
+   "hdurl":"https://apod.nasa.gov/apod/image/0512/as8-14-2383HR.jpg",
+   "image_thumbnail":"apod.api.example.com/image/?image=https://apod.nasa.gov/apod/image/0512/as8-14-2383c75.jpg&width=450",
+   "media_type":"image",
+   "title":"Earthrise",
+   "url":"https://apod.nasa.gov/apod/image/0512/as8-14-2383c75.jpg"
+}
+```
+Example url: `/api/?start_date=2018-10-05&end_date=2018-10-10&thumbs=true&image_thumbnail_size=480&image_thumbnail_size=240`
 
 This query will return all the APODs between Oct 05, 2018 and Oct 10, 2018, with video thumbnails:
 ```
