@@ -10,7 +10,7 @@ const loader = require('./loader.js');
 const resize = require('./resize.js');
 const iconv = require('iconv-lite');
 
-var encoding = 'iso-8859-1';
+var encoding = 'windows-1252';
 
 // help endpoint
 app.get("/", (req, res) => {
