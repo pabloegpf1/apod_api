@@ -104,8 +104,9 @@ exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumb
     } else {
       description = body("body").contents().text();
     }
-    if (dates.getDate(date) != dates.getDate("1995-06-16")) {
-      copyright = description.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/^.+Credit:/, "").replace(/Explanation:.+/, "").trim();
+
+    if (date !== "1995-06-16") {
+      copyright = body("body").text().replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/^.+Credit:/, "").replace(/Explanation:.+/, "").trim();
     }
 
     description = description.replace(/\n/gm, " ").replace( / {2,}/g, ' ').replace(/^.+Explanation:/, "").replace(/Tomorrow('s|&apos;s) picture:.+/, "").trim();
