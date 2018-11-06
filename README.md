@@ -2,7 +2,11 @@
 ### What's this API for?
 This API is for fetching data from [NASA's APOD](https://apod.nasa.gov) website - a popular service showing the most beautiful astronomical photographs in the world. The data is returned in JSON format and can be used for many applications, such as developing mobile apps for viewing APODs. My API is much faster, has no limit regarding dates and has more functions than the [official](https://github.com/nasa/apod-api/) one (eg. `thumbnail_url` value, returned while an APOD is a video).
 ### How to deploy it?
-You can clone the repository and deploy it yourself, or, if you use Heroku, just click this button:
+To test the API locally, clone the repository, install dependencies using `npm install` and then run the API using `node index.js`. The API will be running on `localhost:3000`.
+
+To run on production server, check the server instructions (this process is different for servers based on [Linux](https://www.phusionpassenger.com/library/walkthroughs/deploy/nodejs/ownserver/nginx/oss/trusty/deploy_app.html), [Windows](https://github.com/Azure/iisnode) etc.)
+
+Or, if you use Heroku, just click this button:
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 ### How to use it?
