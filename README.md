@@ -10,15 +10,21 @@ Or, if you use Heroku, just click this button:
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 ### How to use it?
-The API is very easy to use, the syntax is similar to the official API. The API's endpoint is: `/api/`. Without any parameters, the API will return the latest APOD. You can specify parameters listed below.
+The API is very easy to use, the syntax is similar to the official API. The API's endpoint is: `/api/`, the search function's endpoint is `/search/`. Without any parameters, the API will return the latest APOD. You can specify parameters listed below.
 
 ##### Available query parameters:
 - `date`: a string in YYYY-MM-DD format, when set to a date (minimum date: 1995-06-16, maximum date: today), returns an APOD from this date as a JSON object.
 - `start_date` and `end_date` (you need to specify both parameters if you want to use them): strings in YYYY-MM-DD format indicating start and end of date range. All the APODs in the range will be returned as a JSON array.
 - `image_thumbnail_size`: an integer, when larger than 0, `image_thumbnail` will be returned in the JSON file (see below).
 - `absolute_thumbnail_url`: a boolean, when set to `true`, `image_thumbnail`s will have absolute, not relative URLs.
-- `thumbs`: a boolean, when set to `true`, a video thumbnail will be returned if the APOD is a video. Can be used in list requests.
-- `html_tags`: a boolean, when set to `true`, the description will be in the original HTML format. Can be used in list requests.
+- `thumbs`: a boolean, when set to `true`, a video thumbnail will be returned if the APOD is a video.
+- `html_tags`: a boolean, when set to `true`, the description will be in the original HTML format.
+
+##### Available query parameters for search endpoint:
+- Note: every query parameter listed above (except `date`, `start_date` and `end_date`) can be used in this endpoint.
+- `search_query`: a string, the API will search for APODs with this string.
+- `number`: optional, but recommended integer, the API will return only n number of APODs that match the `search_query`.
+- `page`: an integer, the API will return nth page of APODs if `number` is specified.
 
 ##### Returned fields:
 - `apod_site`: a link to the original APOD website for the given day.
@@ -147,6 +153,63 @@ This query will return all the APODs between Oct 05, 2018 and Oct 10, 2018, with
       "media_type":"image",
       "title":"The Last Days of Venus as the Evening Star",
       "url":"https://apod.nasa.gov/apod/image/1810/Venus_Radu-Mihai_MG_3429_1067px.jpg"
+   }
+]
+```
+Example url: `/search/?search_query=planetary%20nebula&number=5&page=2`
+
+This query will return 2nd page of 5 APODs that match the query `planetary nebula`:
+```
+[
+   {
+      "apod_site":"https://apod.nasa.gov/apod/ap180417.html",
+      "copyright":"NASA, ESA, Hubble Legacy Archive; Composition: Giuseppe Donatiello",
+      "date":"2018-04-17",
+      "description":"Except for the rings of Saturn, the Ring Nebula (M57) is probably the most famous celestial band. Its classic appearance is understood to be due to our own perspective, though. The recent mapping of the expanding nebula's 3-D structure, based in part on this clear Hubble image,indicates that the nebula is a relatively dense, donut-like ring wrapped around the middle of a (American) football-shaped cloud of glowing gas. The view from planet Earth looks down the long axis of the football, face-on to the ring. Of course, in this well-studied example of a planetary nebula, the glowing material does not come from planets. Instead, the gaseous shroud represents outer layers expelled from the dying, once sun-like star, now a tiny pinprick of light seen at the nebula's center. Intense ultraviolet light from the hot central star ionizes atoms in the gas. The Ring Nebula is about one light-year across and 2,000 light-years away.",
+      "hdurl":"https://apod.nasa.gov/apod/image/1804/Ring_HubbleDonatiello_3251.jpg",
+      "media_type":"image",
+      "title":"M57: The Ring Nebula",
+      "url":"https://apod.nasa.gov/apod/image/1804/Ring_HubbleDonatiello_960.jpg"
+   },
+   {
+      "apod_site":"https://apod.nasa.gov/apod/ap180109.html",
+      "copyright":"Hubble, NASA, ESA; Processing & License: Judy Schmidt",
+      "date":"2018-01-09",
+      "description":"It is one of the brightest planetary nebulae on the sky -- what should it be named? First discovered in 1878, nebula NGC 7027 can be seen toward the constellation of the Swan (Cygnus) with a standard backyard telescope. Partly because it appears there as only an indistinct spot, it is rarely referred to with a moniker. When imaged with the Earth-orbiting Hubble Space Telescope, however, great details are revealed. Studying Hubble images of NGC 7027 have led to the understanding that it is a planetary nebula that began expanding about 600 years ago, and that the cloud of gas and dust is unusually massive as it appears to contain about three times the mass of our Sun. Pictured here in assigned colors, the resolved, layered, and dust-laced features of NGC 7027 might remind sky enthusiasts of a familiar icon that could be the basis for an informal name. A leading previous suggestion was the Pillow Nebula, but please feel free to make new suggestions -- for example, in an online APOD discussion forum.",
+      "hdurl":"https://apod.nasa.gov/apod/image/1801/NGC7027_HubbleSchmidt_960.jpg",
+      "media_type":"image",
+      "title":"Bright Planetary Nebula NGC 7027 from Hubble",
+      "url":"https://apod.nasa.gov/apod/image/1801/NGC7027_HubbleSchmidt_960.jpg"
+   },
+   {
+      "apod_site":"https://apod.nasa.gov/apod/ap180103.html",
+      "copyright":"CFHT, Coelum, MegaCam, J.-C. Cuillandre (CFHT) & G. A. Anselmi (Coelum)",
+      "date":"2018-01-03",
+      "description":"Will our Sun look like this one day? The Helix Nebula is one of brightest and closest examples of a planetary nebula, a gas cloud created at the end of the life of a Sun-like star. The outer gasses of the star expelled into space appear from our vantage point as if we are looking down a helix. The remnant central stellar core, destined to become a white dwarf star, glows in light so energetic it causes the previously expelled gas to fluoresce. The Helix Nebula, given a technical designation of NGC 7293, lies about 700 light-years away towards the constellation of the Water Bearer (Aquarius) and spans about 2.5 light-years. The featured picture was taken with the Canada-France-Hawaii Telescope (CFHT) located atop a dormant volcano in Hawaii, USA. A close-up of the inner edge of the Helix Nebula shows complex gas knots of unknown origin.",
+      "hdurl":"https://apod.nasa.gov/apod/image/1801/Helix_CFHT_2000.jpg",
+      "media_type":"image",
+      "title":"The Helix Nebula from CFHT",
+      "url":"https://apod.nasa.gov/apod/image/1801/Helix_CFHT_960.jpg"
+   },
+   {
+      "apod_site":"https://apod.nasa.gov/apod/ap171028.html",
+      "copyright":"Image  Hubble Heritage Team, NASA",
+      "date":"2017-10-28",
+      "description":"Wraithlike NGC 6369 is a faint apparition in night skies popularly known as the Little Ghost Nebula. It was discovered by 18th century astronomer Sir William Herschel as he used a telescope to explore the medicinal constellation Ophiucus. Herschel historically classified the round and planet-shaped nebula as a Planetary Nebula. But planetary nebulae in general are not at all related to planets. Instead they are gaseous shrouds created at the end of a sun-like star's life, the dying star's outer layers expanding into space while its core shrinks to become a white dwarf. The transformed white dwarf star, seen near the center, radiates strongly at ultraviolet wavelengths and powers the expanding nebula's glow. Surprisingly complex details and structures of NGC 6369 are revealed in this tantalizing image composed from Hubble Space Telescope data. The nebula's main round structure is about a light-year across and the glow from ionized oxygen, hydrogen, and nitrogen atoms are colored blue, green, and red respectively. Over 2,000 light-years away, the Little Ghost Nebula offers a glimpse of the fate of our Sun, which could produce its own planetary nebula about 5 billion years from now.",
+      "hdurl":"https://apod.nasa.gov/apod/image/1710/NGC6369LittleGhostHST.jpg",
+      "media_type":"image",
+      "title":"NGC 6369: The Little Ghost Nebula",
+      "url":"https://apod.nasa.gov/apod/image/1710/NGC6369LittleGhostHST1024c.jpg"
+   },
+   {
+      "apod_site":"https://apod.nasa.gov/apod/ap170611.html",
+      "copyright":"NASA, ESA, and the Hubble Heritage Team (STScI/AURA); Acknowledgement: R. Sahai (JPL) et al.",
+      "date":"2017-06-11",
+      "description":"What is creating the strange texture of IC 418? Dubbed the Spirograph Nebula for its resemblance to drawings from a cyclical drawing tool, planetary nebula IC 418 shows patterns that are not well understood. Perhaps they are related to chaotic winds from the variable central star, which changes brightness unpredictably in just a few hours. By contrast, evidence indicates that only a few million years ago, IC 418 was probably a well-understood star similar to our Sun. Only a few thousand years ago, IC 418 was probably a common red giant star. Since running out of nuclear fuel, though, the outer envelope has begun expanding outward leaving a hot remnant core destined to become a white-dwarf star, visible in the image center. The light from the central core excites surrounding atoms in the nebula causing them to glow. IC 418 lies about 2000 light-years away and spans 0.3 light-years across. This false-color image taken from the Hubble Space Telescope reveals the unusual details.",
+      "hdurl":"https://apod.nasa.gov/apod/image/1706/Spirograph_Hubble_2119.jpg",
+      "media_type":"image",
+      "title":"IC 418: The Spirograph Nebula",
+      "url":"https://apod.nasa.gov/apod/image/1706/Spirograph_Hubble_960.jpg"
    }
 ]
 ```

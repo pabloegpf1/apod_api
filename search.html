@@ -1,0 +1,82 @@
+<head>
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono|Roboto:400,500" rel="stylesheet">
+  <style>
+  body {
+    padding: 0;
+    margin: 0;
+    background: #212121;
+  }
+  .code {
+    font-family: 'Roboto Mono', monospace;
+    background: #404040;
+    color: #fff;
+    border-radius: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .big_text {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    color: #fff;
+  }
+  .text {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    color: #fff;
+  }
+  a {
+      color: #4286f4;
+      -webkit-transition: color 0.5s;
+      transition: color 0.5s;
+      text-decoration: none;
+    }
+    a:hover {
+      color: #214c91;
+    }
+    .top {
+      background: #151515;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      padding-left: 16px;
+    }
+    li {
+      margin-bottom: 4px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1 class="big_text" style="color: #fff;">Help</h1>
+  </div>
+  <div style="padding-left: 16px; padding-right: 16px; padding-bottom: 8px;">
+    <h3 class="big_text">❓ What's this endpoint for?</h3>
+    <p class="text">This endpoint is for fetching APODs that match requested query string.
+    <h3 class="big_text">💻 How to use it?</h3>
+    <p class="text">The API's endpoint is: <span class="code" id="site"></span>.</p>
+    <h4 class="big_text">Available query parameters:</h4>
+    <ul>
+      <li class="text"><span class="code">search_query</span>: (required!) a string, the API will search for APODs with this string.</li>
+      <li class="text"><span class="code">number</span>:  optional, but recommended integer, the API will return only n number of APODs that match the <span class="code">search_query</span>.</li>
+      <li class="text"><span class="code">page</span>: an integer, the API will return nth page of APODs if <span class="code">number</span> is specified.</li>
+      <li class="text"><span class="code">image_thumbnail_size</span>: (optional) an integer, when larger than 0, <span class="code">image_thumbnail</span> will be returned in the JSON file (see below).</li>
+      <li class="text"><span class="code">absolute_thumbnail_url</span>: (optional) a boolean, when set to <span class="code">true</span>, <span class="code">image_thumbnail</span>s will have absolute, not relative URLs.</li>
+      <li class="text"><span class="code">thumbs</span>: (optional) a boolean, when set to <span class="code">true</span>, a video thumbnail will be returned if the APOD is a video. Can be used in list requests.</li>
+      <li class="text"><span class="code">html_tags</span>: (optional) a boolean, when set to <span class="code">true</span>, the description will be in the original HTML format. Can be used in list requests.</li>
+    </ul>
+    <p class="text"><br><br>Example: <a href="" id="link" class="code" style="color: #4286f4; background: none;"></a><br><br>This query will return 2nd page of 5 APODs that match the query "M27".
+    <h3 class="big_text">💿 Software used for this API</h3>
+    <p class="text"><a href="https://nodejs.org/en/">Node.js</a> JavaScript runtime</p>
+    <p class="text"><a href="https://expressjs.com/">Express</a> web framework</p>
+    <p class="text"><a href="https://www.npmjs.com/package/request">Request</a> library</p>
+    <p class="text"><a href="https://cheerio.js.org/">Cheerio</a> library</p>
+    <p class="text"><a href="https://www.npmjs.com/package/sharp">Sharp</a> library</p>
+    <p class="text"><a href="https://github.com/ashtuchkin/iconv-lite">iconv-lite</a> library</p>
+    <p class="text" style="font-size: 0.8em; color: #777;">Made by Pawel Pleskaczynski</p>
+  </div>
+  <script type="text/javascript">
+  document.getElementById("site").innerHTML = window.location.href;
+  document.getElementById("link").href = window.location.href + "?search_query=m27&number=5&page=2";
+  document.getElementById("link").innerHTML = window.location.href + "?search_query=m27&number=5&page=2";
+  </script>
+</body>

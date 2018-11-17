@@ -8,6 +8,7 @@ const base_url = "https://apod.nasa.gov/apod/";
 const dates = require('./date.js');
 const loader = require('./loader.js');
 const resize = require('./resize.js');
+const search = require('./search.js');
 const iconv = require('iconv-lite');
 
 var encoding = 'windows-1252';
@@ -58,7 +59,7 @@ app.get("/api/", (req, res) => {
                 if (response.statusCode === 200) {
                   body = iconv.decode(body, encoding);
                   const $ = cheerio.load(body);
-                  var data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+                  var data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
                   resolve(data);
                 } else {
                   data = {};
@@ -82,7 +83,6 @@ app.get("/api/", (req, res) => {
       url = "https://apod.nasa.gov/apod/astropix.html";
       request.get({url: url, encoding: null}, function(error, response, body) {
         if (error) {
-          console.log(error);
           var date = new Date();
           date = new Date((date.getTime() + (date.getTimezoneOffset() * 60000)) + (3600000 * -6) - 86400000);
           var day = date.getDate();
@@ -92,8 +92,6 @@ app.get("/api/", (req, res) => {
           var year = date.getFullYear();
           var date_joined = [year, month, day].join("").substring(2);
           var date_request = [year, month, day].join("-");
-          console.log(date_request);
-          console.log(date_joined);
           url = "https://apod.nasa.gov/apod/ap" + date_joined + ".html";
           request.get({url: url, encoding: null}, async function(error, response, body) {
             if (response) {
@@ -101,7 +99,7 @@ app.get("/api/", (req, res) => {
                 body = iconv.decode(body, encoding);
                 const $ = cheerio.load(body);
                 async function show() {
-                  var data = await loader.getDay($, date_request, html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+                  var data = await loader.getDay($, date_request, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
                   res.send(JSON.stringify(data));
                 }
                 show();
@@ -120,7 +118,7 @@ app.get("/api/", (req, res) => {
             body = iconv.decode(body, encoding);
             const $ = cheerio.load(body);
             async function show() {
-              var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+              var data = await loader.getDay($, date, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
               res.send(JSON.stringify(data));
             }
             show();
@@ -148,7 +146,7 @@ app.get("/api/", (req, res) => {
             body = iconv.decode(body, encoding);
             const $ = cheerio.load(body);
             async function show() {
-              var data = await loader.getDay($, date, html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+              var data = await loader.getDay($, date, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
               res.send(JSON.stringify(data));
             }
             show();
@@ -157,13 +155,63 @@ app.get("/api/", (req, res) => {
             res.send(JSON.stringify({"error":"An error happened while requesting the APOD. Maybe the date is wrong?"}));
           }
         } else {
-          res.status(404);
+          res.status(500);
           res.send(JSON.stringify({"error":"An error happened while requesting the APOD."}));
         }
       });
     } else {
       res.send(JSON.stringify({"error":"\`date\` cannot be before the first APOD (June 16, 1995)"}))
     }
+  }
+});
+
+// search endpoint
+app.get("/search/", (req, res) => {
+  const html_tags = req.query.html_tags;
+  const thumbs = req.query.thumbs;
+  const image_thumbnail_size = req.query.image_thumbnail_size;
+  const absolute_img_thumb_url = req.query.absolute_thumbnail_url;
+  const query = req.query.search_query;
+  const number = req.query.number;
+  const page = req.query.page;
+  const api_url = `${req.headers.host}/`;
+  var multiple_thumbs = false;
+  if (Array.isArray(image_thumbnail_size)) {
+    multiple_thumbs = true;
+  }
+
+  if (query !== undefined) {
+    res.setHeader('Content-Type', 'application/json');
+    url = "https://apod.nasa.gov/cgi-bin/apod/apod_search?tquery=" + query;
+    request.get({url: url, encoding: null}, async function(error, response, body) {
+      if (error) {
+        res.status(500);
+        res.send(JSON.stringify({"error":"An error happened while requesting APOD website."}));
+      } else if (response) {
+        if (response.statusCode === 200) {
+          body = iconv.decode(body, encoding);
+          const $ = cheerio.load(body);
+          async function show() {
+            var data = await search.find($, query, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page);
+            if (data !== null && data !== undefined && data.length > 0) {
+              res.send(JSON.stringify(data));
+            } else {
+              res.status(404);
+              res.send(JSON.stringify({"error":`No results for query '${query}'`}));
+            }
+          }
+          show();
+        } else {
+          res.status(500);
+          res.send(JSON.stringify({"error":"An error happened while requesting APOD website."}));
+        }
+      } else {
+        res.status(500);
+        res.send(JSON.stringify({"error":"An error happened while requesting APOD website."}));
+      }
+    });
+  } else {
+    res.sendFile(path.join(__dirname + '/search.html'));
   }
 });
 

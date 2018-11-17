@@ -4,7 +4,7 @@ const request = require('request');
 var exports = module.exports = {};
 const base_url = "https://apod.nasa.gov/apod/";
 
-exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url) {
+exports.getDay = async function (body, date, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url) {
   if (absolute_img_thumb_url !== "true") {
     api_url = "";
   }
@@ -27,9 +27,13 @@ exports.getDay = async function (body, date, html_tags, thumbs, res, image_thumb
         (async function() {
           var array = [];
           for (let thumb_size of image_thumbnail_size) {
-            await array.push(`${api_url}image/?image=${base_url + img}&width=${thumb_size}`);
-            data["image_thumbnail"] = array;
+            (function(thumb_size) {
+              array.push(new Promise(function(resolve, reject) {
+                resolve(`${api_url}image/?image=${base_url + img}&width=${thumb_size}`);
+              }));
+            })(thumb_size);
           }
+          data["image_thumbnail"] = await Promise.all(array);
         })();
       } else {
         image_thumbnail = `${api_url}image/?image=${base_url + img}&width=${image_thumbnail_size}`;

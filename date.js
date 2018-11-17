@@ -35,3 +35,19 @@ exports.subtractDate = function (date, subtract) {
 
   return [year, month, day].join('-');
 };
+
+// get date from URL
+exports.getDateFromURL = function (date) {
+  var date;
+  if (parseInt(date.substring(0, 2)) >= 95) {
+    date = "19" + date;
+  } else {
+    date = "20" + date;
+  }
+
+  var year = date.slice(0, 4);
+  var month = date.slice(4, 6);
+  var day = date.slice(6, 8);
+
+  return [year, month, day].join('-');
+}
