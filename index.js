@@ -80,7 +80,7 @@ app.get("/api/", (req, res) => {
       }
     } else {
       // get the APOD for today
-      url = "https://apod.nasa.gov/apod/astropix.html";
+      url = "https://apod.nasa.gov/";
       request.get({url: url, encoding: null}, function(error, response, body) {
         if (error) {
           var date = new Date();
