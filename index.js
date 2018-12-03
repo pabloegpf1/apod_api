@@ -123,8 +123,36 @@ app.get("/api/", (req, res) => {
             }
             show();
           } else {
-            res.status(404);
-            res.send(JSON.stringify({"error":"No APOD for this date."}))
+            var date = new Date();
+          date = new Date((date.getTime() + (date.getTimezoneOffset() * 60000)) + (3600000 * -6) - 86400000);
+          var day = date.getDate();
+          if (day.toString().length < 2) day = '0' + day;
+          var month = (date.getMonth() + 1);
+          if (month.toString().length < 2) month = '0' + month;
+          var year = date.getFullYear();
+          var date_joined = [year, month, day].join("").substring(2);
+          var date_request = [year, month, day].join("-");
+          url = "https://apod.nasa.gov/apod/ap" + date_joined + ".html";
+          request.get({url: url, encoding: null}, async function(error, response, body) {
+            if (response) {
+              if (response.statusCode === 200) {
+                body = iconv.decode(body, encoding);
+                const $ = cheerio.load(body);
+                async function show() {
+                  var data = await loader.getDay($, date_request, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+                  res.send(JSON.stringify(data));
+                }
+                show();
+              } else {
+                res.status(404);
+                res.send(JSON.stringify({"error":"An error happened while requesting the APOD. Maybe the date is wrong?"}));
+              }
+            } else {
+              res.status(404);
+              res.send(JSON.stringify({"error":"An error happened while requesting the APOD."}));
+            }
+          });
+         
           }
         } else {
           res.status(404);
