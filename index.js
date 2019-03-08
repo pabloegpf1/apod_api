@@ -7,7 +7,7 @@ const path = require('path');
 const cheerio = require('cheerio');
 const dates = require('./date.js');
 const loader = require('./loader.js');
-const resize = require('./resize.js').default;
+const resize = require('./resize.js');
 const search = require('./search.js');
 const iconv = require('iconv-lite');
 
