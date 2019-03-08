@@ -1,4 +1,3 @@
-/* eslint-disable no-inner-declarations */
 /* eslint-disable no-console */
 const express = require('express');
 const app = express();
@@ -44,6 +43,40 @@ app.get('/api/', (req, res) => {
 		res.send(JSON.stringify({'error':message}));
 	}
 
+	async function getAPODs() {
+		let array = [];
+		for (let i = 0; i <= dates.daysDifference(startdate, enddate); i++) {
+			(function(i) {
+				array.push(new Promise((resolve, reject) =>
+					request.get({url: 'https://apod.nasa.gov/apod/ap' + dates.getDate(dates.subtractDate(enddate, i)).substring(2) + '.html', encoding: null}, async function(error, response, body) {
+						if (error) reject(error);
+						// if APOD exists, parse it, otherwise make the object empty
+						if (response.statusCode === 200) {
+							body = iconv.decode(body, encoding);
+							const $ = cheerio.load(body);
+							let data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+							resolve(data);
+						} else {
+							let data = {};
+							resolve(data);
+						}
+					})
+				));
+			})(i);
+		}
+		let output = await Promise.all(array);
+		// filter out empty objects
+		output = output.filter(value => Object.keys(value).length !== 0);
+		output = JSON.stringify(output);
+		// show JSON array
+		res.send(output);
+	}
+
+	async function show($, date) {
+		let data = await loader.getDay($, date, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+		res.send(JSON.stringify(data));
+	}
+
 	if (date === undefined) {
 		if (startdate !== undefined && enddate !== undefined) {
 			if (dates.getDate(startdate) > dates.getDate(enddate)) {
@@ -52,34 +85,6 @@ app.get('/api/', (req, res) => {
 				throwError('start_date cannot be later than end_date', 404);
 			} else {
 				// get list of APODs between start_date and end_date
-				async function getAPODs() {
-					let array = [];
-					for (let i = 0; i <= dates.daysDifference(startdate, enddate); i++) {
-						(function(i) {
-							array.push(new Promise((resolve, reject) =>
-								request.get({url: 'https://apod.nasa.gov/apod/ap' + dates.getDate(dates.subtractDate(enddate, i)).substring(2) + '.html', encoding: null}, async function(error, response, body) {
-									if (error) reject(error);
-									// if APOD exists, parse it, otherwise make the object empty
-									if (response.statusCode === 200) {
-										body = iconv.decode(body, encoding);
-										const $ = cheerio.load(body);
-										let data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
-										resolve(data);
-									} else {
-										let data = {};
-										resolve(data);
-									}
-								})
-							));
-						})(i);
-					}
-					let output = await Promise.all(array);
-					// filter out empty objects
-					output = output.filter(value => Object.keys(value).length !== 0);
-					output = JSON.stringify(output);
-					// show JSON array
-					res.send(output);
-				}
 				getAPODs();
 			}
 		} else {
@@ -102,11 +107,7 @@ app.get('/api/', (req, res) => {
 							if (response.statusCode === 200) {
 								body = iconv.decode(body, encoding);
 								const $ = cheerio.load(body);
-								async function show() {
-									let data = await loader.getDay($, date_request, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
-									res.send(JSON.stringify(data));
-								}
-								show();
+								show($, date_request);
 							} else {
 								throwError('An error happened while requesting the APOD. Maybe the date is wrong?', 404);
 							}
@@ -119,11 +120,7 @@ app.get('/api/', (req, res) => {
 					if (response.statusCode === 200) {
 						body = iconv.decode(body, encoding);
 						const $ = cheerio.load(body);
-						async function show() {
-							let data = await loader.getDay($, date, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
-							res.send(JSON.stringify(data));
-						}
-						show();
+						show($, date);
 					} else {
 						let date = new Date();
 						date = new Date((date.getTime() + (date.getTimezoneOffset() * 60000)) + (3600000 * -6) - 86400000);
@@ -140,11 +137,7 @@ app.get('/api/', (req, res) => {
 								if (response.statusCode === 200) {
 									body = iconv.decode(body, encoding);
 									const $ = cheerio.load(body);
-									async function show() {
-										let data = await loader.getDay($, date_request, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
-										res.send(JSON.stringify(data));
-									}
-									show();
+									show($, date_request);
 								} else {
 									throwError('An error happened while requesting the APOD. Maybe the date is wrong?', 404);
 								}
@@ -171,11 +164,7 @@ app.get('/api/', (req, res) => {
 					if (response.statusCode === 200) {
 						body = iconv.decode(body, encoding);
 						const $ = cheerio.load(body);
-						async function show() {
-							let data = await loader.getDay($, date, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
-							res.send(JSON.stringify(data));
-						}
-						show();
+						show($, date);
 					} else {
 						throwError('An error happened while requesting the APOD. Maybe the date is wrong?', 404);
 					}
@@ -204,6 +193,16 @@ app.get('/search/', (req, res) => {
 		multiple_thumbs = true;
 	}
 
+	async function show($) {
+		let data = await search.find($, query, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page);
+		if (data !== null && data !== undefined && data.length > 0) {
+			res.send(JSON.stringify(data));
+		} else {
+			res.status(404);
+			res.send(JSON.stringify({'error':`No results for query '${query}'`}));
+		}
+	}
+
 	if (query !== undefined) {
 		res.setHeader('Content-Type', 'application/json');
 		let url = 'https://apod.nasa.gov/cgi-bin/apod/apod_search?tquery=' + query;
@@ -215,16 +214,7 @@ app.get('/search/', (req, res) => {
 				if (response.statusCode === 200) {
 					body = iconv.decode(body, encoding);
 					const $ = cheerio.load(body);
-					async function show() {
-						let data = await search.find($, query, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page);
-						if (data !== null && data !== undefined && data.length > 0) {
-							res.send(JSON.stringify(data));
-						} else {
-							res.status(404);
-							res.send(JSON.stringify({'error':`No results for query '${query}'`}));
-						}
-					}
-					show();
+					show($);
 				} else {
 					res.status(500);
 					res.send(JSON.stringify({'error':'An error happened while requesting APOD website.'}));
