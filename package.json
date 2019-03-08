@@ -16,5 +16,8 @@
     "iconv-lite": "^0.4.24",
     "request": "^2.88.0",
     "sharp": "^0.21.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.15.1"
   }
 }
