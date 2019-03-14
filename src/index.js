@@ -5,9 +5,9 @@ const port = (process.env.PORT || 3000);
 const request = require('request');
 const path = require('path');
 const cheerio = require('cheerio');
-const dates = require('./date.js');
-const loader = require('./loader.js');
-const resize = require('./resize.js');
+const dates = require('./utils/date.js');
+const loader = require('./utils/loader.js');
+const resize = require('./utils/resize.js');
 const search = require('./search.js');
 const iconv = require('iconv-lite');
 
@@ -16,7 +16,7 @@ let encoding = 'windows-1252';
 // help endpoint
 app.get('/', (req, res) => {
 	if (Object.keys(req.query).length === 0) {
-		res.sendFile(path.join(__dirname + '/index.html'));
+		res.sendFile(path.join(__dirname + '/static/index.html'));
 	}
 });
 
@@ -225,7 +225,7 @@ app.get('/search/', (req, res) => {
 			}
 		});
 	} else {
-		res.sendFile(path.join(__dirname + '/search.html'));
+		res.sendFile(path.join(__dirname + '/static/search.html'));
 	}
 });
 
