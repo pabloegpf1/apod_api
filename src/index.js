@@ -31,6 +31,7 @@ app.get('/api/', (req, res) => {
 	const startdate = req.query.start_date;
 	const image_thumbnail_size = req.query.image_thumbnail_size;
 	const absolute_img_thumb_url = req.query.absolute_thumbnail_url;
+	const count = req.query.count;
 	// get absolute API url
 	const api_url = `${req.headers.host}/`;
 	let multiple_thumbs = false;
@@ -77,6 +78,31 @@ app.get('/api/', (req, res) => {
 		res.send(JSON.stringify(data));
 	}
 
+	async function getCount(count) {
+		let array = [];
+		for (let i = 0; i < count; i++) {
+			(function get() {
+				let date = dates.getRandom();
+				array.push(new Promise((resolve, reject) =>
+					request.get({url: 'https://apod.nasa.gov/apod/ap' + date.joined+ '.html', encoding: null}, async function(error, response, body) {
+						if (error) reject(error);
+						// if APOD exists, parse it, otherwise make the object empty
+						if (response.statusCode === 200) {
+							body = iconv.decode(body, encoding);
+							const $ = cheerio.load(body);
+							let data = await loader.getDay($, date.request, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+							resolve(data);
+						} else {
+							get();
+						}
+					})
+				));
+			})();
+		}
+		let output = await Promise.all(array);
+		res.send(JSON.stringify(output));
+	}
+
 	if (date === undefined) {
 		if (startdate !== undefined && enddate !== undefined) {
 			if (dates.getDate(startdate) > dates.getDate(enddate)) {
@@ -86,6 +112,12 @@ app.get('/api/', (req, res) => {
 			} else {
 				// get list of APODs between start_date and end_date
 				getAPODs();
+			}
+		} else if (count !== undefined) {
+			if (count > 0) {
+				getCount(count);
+			} else {
+				throwError('count must be larger than 0', 400);
 			}
 		} else {
 			// get the APOD for today
@@ -123,7 +155,7 @@ app.get('/api/', (req, res) => {
 						show($, date);
 					} else {
 						let date = new Date();
-						date = new Date((date.getTime() + (date.getTimezoneOffset() * 60000)) + (3600000 * -6) - 86400000);
+						date = new Date((date.getTime() + (date.getTimezoneOffset() * 60000) + (3600000 * -6) - 86400000));
 						let day = date.getDate();
 						if (day.toString().length < 2) day = '0' + day;
 						let month = (date.getMonth() + 1);
