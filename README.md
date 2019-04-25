@@ -19,6 +19,7 @@ The API is very easy to use, the syntax is similar to the official API. The API'
 - `absolute_thumbnail_url`: a boolean, when set to `true`, `image_thumbnail`s will have absolute, not relative URLs.
 - `thumbs`: a boolean, when set to `true`, a video thumbnail will be returned if the APOD is a video.
 - `html_tags`: a boolean, when set to `true`, the description will be in the original HTML format.
+- `count`: an integer, when larger than 0, the API will return specified number of random APODs
 
 ##### Available query parameters for search endpoint:
 - Note: every query parameter listed above (except `date`, `start_date` and `end_date`) can be used in this endpoint.
@@ -210,6 +211,63 @@ This query will return 2nd page of 5 APODs that match the query `planetary nebul
       "media_type":"image",
       "title":"IC 418: The Spirograph Nebula",
       "url":"https://apod.nasa.gov/apod/image/1706/Spirograph_Hubble_960.jpg"
+   }
+]
+```
+Example url: `/api/?count=5`
+
+This query will return 5 random APODs:
+```
+[
+   {
+      "apod_site": "https://apod.nasa.gov/apod/ap091016.html",
+      "copyright": "ESA, SPIRE & PACS Consortia",
+      "date": "2009-10-16",
+      "description": "With a 3.5 meter diameter mirror, larger than the Hubble Space Telescope, Herschel is ESA's new infrared observatory. The space-based telescope is named for German-born British astronomer Frederick William Herschel who discovered infrared light over 200 years ago. In initial tests, Herschel's cameras have combined to deliver this spectacular view along the plane of the Milky Way in the constellation of the Southern Cross. Spanning some 2 degrees the premier, false-color, far-infrared view captures our galaxy's cold dust clouds in extreme detail, showing a remarkable, connected maze of filaments and star-forming regions. These and planned future Herschel observations are intended to unravel mysteries of star formation by surveying broad areas of the galactic plane.",
+      "hdurl": "https://apod.nasa.gov/apod/image/0910/FirstParallelMode_SPIRE_PACS.jpg",
+      "media_type": "image",
+      "title": "Herschel Views the Milky Way",
+      "url": "https://apod.nasa.gov/apod/image/0910/FirstParallelMode_SPIRE_PACS_c900.jpg"
+   },
+   {
+      "apod_site": "https://apod.nasa.gov/apod/ap091125.html",
+      "copyright": "Axel Mellinger (Central Mich. U)",
+      "date": "2009-11-25",
+      "description": "If you could go far away from the Earth and look around the entire sky -- what would you see? Such was the goal of the All-Sky Milky Way Panorama 2.0 project of Axel Mellinger. Presented above is the result: a digital compilation of over 3,000 images comprising the highest resolution digital panorama of the entire night sky yet created. An interactive zoom version, featuring over 500 million pixels, can be found here. Every fixed astronomical object visible to the unaided eye has been imaged, including every constellation, every nebula, and every star cluster. Moreover, millions of individual stars are also visible, all in our Milky Way Galaxy, and many a thousand times fainter than a human can see. Dark filaments of dust lace the central band of our Milky Way Galaxy, visible across the image center. The satellite galaxies Large and Small Magellanic Clouds are visible on the lower right. This was not the first time Dr. Mellinger has embarked on such a project: the results of his first All-Sky Milky Way Panorama Project, taken using photographic film, are visible here.",
+      "hdurl": "https://apod.nasa.gov/apod/image/0911/mwpan_mellinger_big.jpg",
+      "media_type": "image",
+      "title": "All-Sky Milky Way Panorama",
+      "url": "https://apod.nasa.gov/apod/image/0911/mwpan_mellinger.jpg"
+   },
+   {
+      "apod_site": "https://apod.nasa.gov/apod/ap971017.html",
+      "copyright": "MGS Project, JPL, NASA",
+      "date": "1997-10-17",
+      "description": "An icy mist and late afternoon clouds cover much of this section of Valles Marineris on Mars. The Valles Marineris or Mariner Valley is a huge canyon system about 2,000 miles long and up to 5 miles deep. This test image was produced using data from Mars Global Surveyor's wide angle cameras viewing the canyon from a distance of 360-600 miles. Color was synthesized using images recorded through blue and red filters. Mission controllers have recently raised the spacecraft's aerobraking orbit to study the unexpected motion of one of the Surveyor's solar panels.",
+      "hdurl": "https://apod.nasa.gov/apod/image/9710/marval1_mgs_big.jpg",
+      "media_type": "image",
+      "title": "Mars: A Mist In Mariner Valley",
+      "url": "https://apod.nasa.gov/apod/image/9710/marval1_mgs.jpg"
+   },
+   {
+      "apod_site": "https://apod.nasa.gov/apod/ap950928.html",
+      "copyright": "NASA, JPL Magellan Project",
+      "date": "1995-09-28",
+      "description": "This computer generated view of a Venusian volcano was created using data from NASA's Magellan spacecraft. Magellan used its onboard radar to map the surface of Venus which is hidden from telescopic observations by a perpetual cloud cover. Using this radar data to provide three dimensional information, a computer was then able to produce this view of Maat Mons, a 5 mile high volcano, from a dramatic perspective. The colors used to render the surface are based on earlier color images transmitted by TV cameras on the Soviet Venera 13 and 14 Venus landers.",
+      "hdurl": "https://apod.nasa.gov/apod/image/maat_mons.gif",
+      "media_type": "image",
+      "title": "A Venusian Landscape",
+      "url": "https://apod.nasa.gov/apod/image/maat_mons.gif"
+   },
+   {
+      "apod_site": "https://apod.nasa.gov/apod/ap131217.html",
+      "copyright": "Juan Carlos Casado (TWAN, Earth and Stars)",
+      "date": "2013-12-17",
+      "description": "On some nights it rains meteors. Peaking two nights ago, asteroid dust streaked through the dark skies of Earth, showering down during the annual Geminids meteor shower. Astrophotographer Juan Carlos Casado captured the space weather event, as pictured above, in a series of exposures spanning about 2.3 hours using a wide angle lens. The snowcapped Teide volcano of the Canary Islands of Spain towers in the foreground, while the picturesque constellation of Orion highlights the background. The star appearing just near the top of the volcano is Rigel. Although the asteroid dust particles are traveling parallel to each other, the resulting meteor streaks appear to radiate from a single point on the sky, in this case in the constellation of Gemini, off the top of the image. Like train tracks appearing to converge in the distance, the meteor radiant effect is due to perspective. The astrophotographer has estimated that there are about 50 Geminids visible in the above composite image -- how many do you see?",
+      "hdurl": "https://apod.nasa.gov/apod/image/1312/geminds2013_jcc_1500.jpg",
+      "media_type": "image",
+      "title": "Geminid Meteors over Teide Volcano",
+      "url": "https://apod.nasa.gov/apod/image/1312/geminds2013_jcc_960.jpg"
    }
 ]
 ```
