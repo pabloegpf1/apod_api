@@ -121,63 +121,15 @@ app.get('/api/', (req, res) => {
 			}
 		} else {
 			// get the APOD for today
-			let url = 'https://apod.nasa.gov/';
+			let url = 'https://apod.nasa.gov/apod/astropix.html';
 			request.get({url: url, encoding: null}, function(error, response, body) {
-				if (error) {
-					let date = new Date();
-					date = new Date((date.getTime() + (date.getTimezoneOffset() * 60000)) + (3600000 * -6) - 86400000);
-					let day = date.getDate();
-					if (day.toString().length < 2) day = '0' + day;
-					let month = (date.getMonth() + 1);
-					if (month.toString().length < 2) month = '0' + month;
-					let year = date.getFullYear();
-					let date_joined = [year, month, day].join('').substring(2);
-					let date_request = [year, month, day].join('-');
-					url = 'https://apod.nasa.gov/apod/ap' + date_joined + '.html';
-					request.get({url: url, encoding: null}, async function(error, response, body) {
-						if (response) {
-							if (response.statusCode === 200) {
-								body = iconv.decode(body, encoding);
-								const $ = cheerio.load(body);
-								show($, date_request);
-							} else {
-								throwError('An error happened while requesting the APOD. Maybe the date is wrong?', 404);
-							}
-						} else {
-							throwError('An error happened while requesting the APOD.', 404);
-						}
-					});
-				} else if (response) {
-					// if exists, parse it, otherwise throw 'not found' error
+				if (response) {
 					if (response.statusCode === 200) {
 						body = iconv.decode(body, encoding);
 						const $ = cheerio.load(body);
 						show($, date);
 					} else {
-						let date = new Date();
-						date = new Date((date.getTime() + (date.getTimezoneOffset() * 60000) + (3600000 * -6) - 86400000));
-						let day = date.getDate();
-						if (day.toString().length < 2) day = '0' + day;
-						let month = (date.getMonth() + 1);
-						if (month.toString().length < 2) month = '0' + month;
-						let year = date.getFullYear();
-						let date_joined = [year, month, day].join('').substring(2);
-						let date_request = [year, month, day].join('-');
-						url = 'https://apod.nasa.gov/apod/ap' + date_joined + '.html';
-						request.get({url: url, encoding: null}, async function(error, response, body) {
-							if (response) {
-								if (response.statusCode === 200) {
-									body = iconv.decode(body, encoding);
-									const $ = cheerio.load(body);
-									show($, date_request);
-								} else {
-									throwError('An error happened while requesting the APOD. Maybe the date is wrong?', 404);
-								}
-							} else {
-								throwError('An error happened while requesting the APOD.', 404);
-							}
-						});
-         
+						throwError('An error happened while requesting the APOD.', 404);
 					}
 				} else {
 					throwError('An error happened while requesting the APOD.', 404);
@@ -226,7 +178,7 @@ app.get('/search/', (req, res) => {
 	}
 
 	async function show($) {
-		let data = await search.find($, query, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page);
+		let data = await search.find($, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page);
 		if (data !== null && data !== undefined && data.length > 0) {
 			res.send(JSON.stringify(data));
 		} else {

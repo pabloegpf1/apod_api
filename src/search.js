@@ -7,7 +7,7 @@ const cheerio = require('cheerio');
 let encoding = 'windows-1252';
 var exports = module.exports = {};
 
-exports.find = async function (body, query, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page) {
+exports.find = async function (body, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page) {
 	let return_data = new Promise(async function(resolve) {
 		let days;
 		let i = 1;

@@ -33,7 +33,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, image_thumbnail_
 							}));
 						})(thumb_size);
 					}
-					data['image_thumbnail'] = await Promise.all(array);
+					data.image_thumbnail = await Promise.all(array);
 				})();
 			} else {
 				image_thumbnail = `${api_url}image/?image=${base_url + img}&width=${image_thumbnail_size}`;
@@ -59,7 +59,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, image_thumbnail_
 						let array = [];
 						for (let thumb_size of image_thumbnail_size) {
 							await array.push(`${api_url}image/?image=${await getThumbs(src)}&width=${thumb_size}`);
-							data['image_thumbnail'] = array;
+							data.image_thumbnail = array;
 						}
 					})();
 				} else {
@@ -110,7 +110,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, image_thumbnail_
 		}
 
 		if (date !== '1995-06-16') {
-			copyright = body('body').text().replace(/\n/gm, ' ').replace( / {2,}/g, ' ').replace(/^.+Credit:/, '').replace(/Explanation:.+/, '').trim();
+			copyright = body('body').text().replace(/\n/gm, ' ').replace( / {2,}/g, ' ').match(new RegExp(/Credit:(.*)Explanation/gm))[0].replace('Credit:', '').replace('Explanation', '').trim();
 		}
 
 		description = description.replace(/\n/gm, ' ').replace( / {2,}/g, ' ').replace(/^.+Explanation:/, '').replace(/Tomorrow('s|&apos;s) picture:.+/, '').trim();
@@ -123,7 +123,7 @@ exports.getDay = async function (body, date, html_tags, thumbs, image_thumbnail_
 		copyright = copyright.split('\n');
 		copyright = copyright.slice(2);
 		copyright = copyright.join('\n');
-		copyright = copyright.replace(/\n/gm, ' ').replace( / {2,}/g, ' ').replace(/(?:Image Credit & Copyright:?|Copyright:?|Credit:|Credit and copyright:)/gmi, '');
+		copyright = copyright.replace(/\n/gm, ' ').replace( / {2,}/g, ' ').trim().replace(/(?:^Image Credit & Copyright:|^Copyright:|^Credit:|^Credit and copyright:|^Image Credit:)/gmi, '');
 		title = body('b').eq(0).text().trim();
 
 		copyright = copyright.trim();
@@ -146,16 +146,18 @@ exports.getDay = async function (body, date, html_tags, thumbs, image_thumbnail_
 	}
 
 	// add everything to the object
-	data['apod_site'] = apod_site;
-	data['copyright'] = copyright;
-	data['date'] = date;
-	data['description'] = description;
-	data['hdurl'] = hdurl;
-	data['image_thumbnail'] = image_thumbnail;
-	data['media_type'] = media_type;
-	data['thumbnail_url'] = thumbnail_url;
-	data['title'] = title;
-	data['url'] = url;
+	data = {
+		apod_site: apod_site,
+		copyright: copyright,
+		date: date,
+		description: description,
+		hdurl: hdurl,
+		image_thumbnail: image_thumbnail,
+		media_type: media_type,
+		thumbnail_url: thumbnail_url,
+		title: title,
+		url: url
+	};
 
 	// return all the data
 	return data;
