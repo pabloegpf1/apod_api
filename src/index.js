@@ -11,6 +11,12 @@ const resize = require('./utils/resize.js');
 const search = require('./search.js');
 const iconv = require('iconv-lite');
 
+var client = require('redis').createClient(process.env.REDIS_URL);
+
+client.on('error', (err) => {
+	console.log(`Redis error: ${err}`);
+});
+
 let encoding = 'windows-1252';
 
 // help endpoint
@@ -39,38 +45,47 @@ app.get('/api/', (req, res) => {
 		multiple_thumbs = true;
 	}
 
+	var key = `a:${date}.${html_tags}.${thumbs}.${enddate}.${startdate}.${image_thumbnail_size}.${absolute_img_thumb_url}.${count}`;
+
 	function throwError(message, code) {
 		res.status(code);
 		res.send(JSON.stringify({'error':message}));
 	}
 
 	async function getAPODs() {
-		let array = [];
-		for (let i = 0; i <= dates.daysDifference(startdate, enddate); i++) {
-			(function(i) {
-				array.push(new Promise((resolve, reject) =>
-					request.get({url: 'https://apod.nasa.gov/apod/ap' + dates.getDate(dates.subtractDate(enddate, i)).substring(2) + '.html', encoding: null}, async function(error, response, body) {
-						if (error) reject(error);
-						// if APOD exists, parse it, otherwise make the object empty
-						if (response.statusCode === 200) {
-							body = iconv.decode(body, encoding);
-							const $ = cheerio.load(body);
-							let data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
-							resolve(data);
-						} else {
-							let data = {};
-							resolve(data);
-						}
-					})
-				));
-			})(i);
-		}
-		let output = await Promise.all(array);
-		// filter out empty objects
-		output = output.filter(value => Object.keys(value).length !== 0);
-		output = JSON.stringify(output);
-		// show JSON array
-		res.send(output);
+		client.get(key, async function (err, data) {
+			if (data) {
+				res.send(data);
+			} else {
+				let array = [];
+				for (let i = 0; i <= dates.daysDifference(startdate, enddate); i++) {
+					(function(i) {
+						array.push(new Promise((resolve, reject) =>
+							request.get({url: 'https://apod.nasa.gov/apod/ap' + dates.getDate(dates.subtractDate(enddate, i)).substring(2) + '.html', encoding: null}, async function(error, response, body) {
+								if (error) reject(error);
+								// if APOD exists, parse it, otherwise make the object empty
+								if (response.statusCode === 200) {
+									body = iconv.decode(body, encoding);
+									const $ = cheerio.load(body);
+									let data = await loader.getDay($, dates.subtractDate(enddate, i), html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url);
+									resolve(data);
+								} else {
+									let data = {};
+									resolve(data);
+								}
+							})
+						));
+					})(i);
+				}
+				let output = await Promise.all(array);
+				// filter out empty objects
+				output = output.filter(value => Object.keys(value).length !== 0);
+				output = JSON.stringify(output);
+				client.set(key, output);
+				// show JSON array
+				res.send(output);
+			}
+		});
 	}
 
 	async function show($, date) {
@@ -122,17 +137,26 @@ app.get('/api/', (req, res) => {
 		} else {
 			// get the APOD for today
 			let url = 'https://apod.nasa.gov/apod/astropix.html';
-			request.get({url: url, encoding: null}, function(error, response, body) {
-				if (response) {
-					if (response.statusCode === 200) {
-						body = iconv.decode(body, encoding);
-						const $ = cheerio.load(body);
-						show($, date);
-					} else {
-						throwError('An error happened while requesting the APOD.', 404);
-					}
+			client.get(key, function(err, data) {
+				if (data) {
+					const $ = cheerio.load(data);
+					show($, date);
 				} else {
-					throwError('An error happened while requesting the APOD.', 404);
+					request.get({url: url, encoding: null}, function(error, response, body) {
+						if (response) {
+							if (response.statusCode === 200) {
+								body = iconv.decode(body, encoding);
+								const $ = cheerio.load(body);
+								client.setex(key, 60 * 30, body);
+								
+								show($, date);
+							} else {
+								throwError('An error happened while requesting the APOD.', 404);
+							}
+						} else {
+							throwError('An error happened while requesting the APOD.', 404);
+						}
+					});
 				}
 			});
 		}
@@ -140,20 +164,26 @@ app.get('/api/', (req, res) => {
 		// if date is after the first APOD, parse the APOD, otherwise throw error
 		if (dates.getDate(date) >= dates.getDate('1995-06-16')) {
 			let url = 'https://apod.nasa.gov/apod/ap' + dates.getDate(date).substring(2) + '.html';
-			request.get({url: url, encoding: null}, async function(error, response, body) {
-				if (error) {
-					throwError('An error happened while requesting the APOD.', 404);
-				} else if (response) {
-					// if exists, parse it, otherwise throw 'not found' error
-					if (response.statusCode === 200) {
-						body = iconv.decode(body, encoding);
-						const $ = cheerio.load(body);
-						show($, date);
-					} else {
-						throwError('An error happened while requesting the APOD. Maybe the date is wrong?', 404);
-					}
+			client.get(key, function(err, data) {
+				if (data) {
+					const $ = cheerio.load(data);
+					show($, date);
 				} else {
-					throwError('An error happened while requesting the APOD. Maybe the date is wrong?', 500);
+					request.get({url: url, encoding: null}, function(error, response, body) {
+						if (response) {
+							if (response.statusCode === 200) {
+								body = iconv.decode(body, encoding);
+								const $ = cheerio.load(body);
+								client.set(key, body);
+								
+								show($, date);
+							} else {
+								throwError('An error happened while requesting the APOD.', 404);
+							}
+						} else {
+							throwError('An error happened while requesting the APOD.', 404);
+						}
+					});
 				}
 			});
 		} else {
@@ -177,6 +207,8 @@ app.get('/search/', (req, res) => {
 		multiple_thumbs = true;
 	}
 
+	var key = `s:${html_tags}.${thumbs}.${image_thumbnail_size}.${absolute_img_thumb_url}.${query}.${number}.${page}.${api_url}`;
+
 	async function show($) {
 		let data = await search.find($, html_tags, thumbs, image_thumbnail_size, api_url, multiple_thumbs, absolute_img_thumb_url, number, page);
 		if (data !== null && data !== undefined && data.length > 0) {
@@ -190,22 +222,31 @@ app.get('/search/', (req, res) => {
 	if (query !== undefined) {
 		res.setHeader('Content-Type', 'application/json');
 		let url = 'https://apod.nasa.gov/cgi-bin/apod/apod_search?tquery=' + query;
-		request.get({url: url, encoding: null}, async function(error, response, body) {
-			if (error) {
-				res.status(500);
-				res.send(JSON.stringify({'error':'An error happened while requesting APOD website.'}));
-			} else if (response) {
-				if (response.statusCode === 200) {
-					body = iconv.decode(body, encoding);
-					const $ = cheerio.load(body);
-					show($);
-				} else {
-					res.status(500);
-					res.send(JSON.stringify({'error':'An error happened while requesting APOD website.'}));
-				}
+
+		client.get(key, async function(err, data) {
+			if (data) {
+				const $ = cheerio.load(data);
+				show($);
 			} else {
-				res.status(500);
-				res.send(JSON.stringify({'error':'An error happened while requesting APOD website.'}));
+				request.get({url: url, encoding: null}, async function(error, response, body) {
+					if (error) {
+						res.status(500);
+						res.send(JSON.stringify({'error':'An error happened while requesting APOD website.'}));
+					} else if (response) {
+						if (response.statusCode === 200) {
+							body = iconv.decode(body, encoding);
+							client.setex(key, 60 * 30, body);
+							const $ = cheerio.load(body);
+							show($);
+						} else {
+							res.status(500);
+							res.send(JSON.stringify({'error':'An error happened while requesting APOD website.'}));
+						}
+					} else {
+						res.status(500);
+						res.send(JSON.stringify({'error':'An error happened while requesting APOD website.'}));
+					}
+				});
 			}
 		});
 	} else {

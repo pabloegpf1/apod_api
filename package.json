@@ -14,6 +14,7 @@
     "cheerio-advanced-selectors": "^2.0.1",
     "express": "^4.16.4",
     "iconv-lite": "^0.4.24",
+    "redis": "^2.8.0",
     "request": "^2.88.0",
     "sharp": "^0.21.0"
   },
