@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 const express = require('express');
-const app = express();
 const port = (process.env.PORT || 3000);
 const request = require('request');
 const path = require('path');
@@ -10,12 +9,15 @@ const loader = require('./utils/loader.js');
 const resize = require('./utils/resize.js');
 const search = require('./search.js');
 const iconv = require('iconv-lite');
+const cors = require('cors');
+const app = express();
 
 var client = require('redis').createClient(process.env.REDIS_URL);
 
 client.on('error', (err) => {
 	console.log(`Redis error: ${err}`);
 });
+
 
 let encoding = 'windows-1252';
 
@@ -27,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 // API endpoint
-app.get('/api/', (req, res) => {
+app.get('/api/', cors(), (req, res) => {
 	res.setHeader('Content-Type', 'application/json');
 	// possible query parameters
 	const date = req.query.date;
@@ -193,7 +195,7 @@ app.get('/api/', (req, res) => {
 });
 
 // search endpoint
-app.get('/search/', (req, res) => {
+app.get('/search/', cors(), (req, res) => {
 	const html_tags = req.query.html_tags;
 	const thumbs = req.query.thumbs;
 	const image_thumbnail_size = req.query.image_thumbnail_size;
@@ -255,7 +257,7 @@ app.get('/search/', (req, res) => {
 });
 
 // image resize endpoint
-app.get('/image/', (req, res) => {
+app.get('/image/', cors(), (req, res) => {
 	if (Object.keys(req.query).length === 0) {
 		res.setHeader('Content-Type', 'application/json');
 		res.status(400);

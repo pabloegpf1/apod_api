@@ -12,6 +12,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "cheerio-advanced-selectors": "^2.0.1",
+    "cors": "^2.8.5",
     "express": "^4.16.4",
     "iconv-lite": "^0.4.24",
     "redis": "^2.8.0",
