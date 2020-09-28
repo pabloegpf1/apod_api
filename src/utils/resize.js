@@ -4,16 +4,15 @@ const request = require('request');
 
 // get path of image, its format and desired width
 module.exports = function resize(path, width) {
-	const readStream = request({url:path,encoding:null});
-	let transform = sharp();
+  const readStream = request({ url: path, encoding: null });
+  let transform = sharp();
 
-	transform = transform.resize(width);
-	transform = transform.toFormat('jpeg');
+  transform
+    .resize(width)
+    .toFormat('jpeg')
+    .on('error', function (err) {
+      console.log('Exception: ' + err);
+    });
 
-	transform
-		.on('error', function(err) {
-			console.log('Exception: ' + err);
-		});
-
-	return readStream.pipe(transform);
+  return readStream.pipe(transform);
 };
