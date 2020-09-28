@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  node-server:
+    build: ./
+    environment:
+      - PORT=40500
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 40500:8080
+    depends_on:
+      - redis-server
+
+  redis-server:
+    image: redis
+    restart: always
+    ports:
+      - 63791:6379
+    volumes:
+      - ./redis-data:/var/lib/redis
+    networks:
+      - redis
+
+networks:
+  redis:
+    driver: bridge

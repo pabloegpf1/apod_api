@@ -10,10 +10,15 @@ const resize = require('./utils/resize.js');
 const search = require('./search.js');
 const iconv = require('iconv-lite');
 const cors = require('cors');
+const redis = require('redis');
 const app = express();
 
-var client = require('redis').createClient(process.env.REDIS_URL);
-
+const REDIS_HOST = 'redis-server';
+// const client = redis.createClient(REDIS_HOST);
+const client = redis.createClient({
+  host: REDIS_HOST,
+  port: 6379,
+});
 client.on('error', (err) => {
   console.log(`Redis error: ${err}`);
 });
