@@ -1,40 +1,31 @@
 /* eslint-disable no-console */
-const express = require('express');
+const express = require("express");
 const port = process.env.PORT || 3000;
-const request = require('request');
-const path = require('path');
-const cheerio = require('cheerio');
-const dates = require('./utils/date.js');
-const loader = require('./utils/loader.js');
-const resize = require('./utils/resize.js');
-const search = require('./search.js');
-const iconv = require('iconv-lite');
-const cors = require('cors');
-const redis = require('redis');
+const request = require("request");
+const path = require("path");
+const cheerio = require("cheerio");
+const dates = require("./utils/date.js");
+const loader = require("./utils/loader.js");
+const resize = require("./utils/resize.js");
+const search = require("./search.js");
+const iconv = require("iconv-lite");
+const cors = require("cors");
 const app = express();
 
-const REDIS_HOST = 'redis-server';
-// const client = redis.createClient(REDIS_HOST);
-const client = redis.createClient({
-  host: REDIS_HOST,
-  port: 6379,
-});
-client.on('error', (err) => {
-  console.log(`Redis error: ${err}`);
-});
+const redisClient = require("./redisDb.js");
 
-let encoding = 'windows-1252';
+let encoding = "windows-1252";
 
 // help endpoint
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   if (Object.keys(req.query).length === 0) {
-    res.sendFile(path.join(__dirname + '/static/index.html'));
+    res.sendFile(path.join(__dirname + "/static/index.html"));
   }
 });
 
 // API endpoint
-app.get('/api/', cors(), (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
+app.get("/api/", cors(), (req, res) => {
+  res.setHeader("Content-Type", "application/json");
   // possible query parameters
   const date = req.query.date;
   const html_tags = req.query.html_tags;
@@ -59,7 +50,7 @@ app.get('/api/', cors(), (req, res) => {
   }
 
   async function getAPODs() {
-    client.get(key, async function (err, data) {
+    redisClient.get(key, async function (err, data) {
       if (data) {
         res.send(data);
       } else {
@@ -71,11 +62,11 @@ app.get('/api/', cors(), (req, res) => {
                 request.get(
                   {
                     url:
-                      'https://apod.nasa.gov/apod/ap' +
+                      "https://apod.nasa.gov/apod/ap" +
                       dates
                         .getDate(dates.subtractDate(enddate, i))
                         .substring(2) +
-                      '.html',
+                      ".html",
                     encoding: null,
                   },
                   async function (error, response, body) {
@@ -109,7 +100,7 @@ app.get('/api/', cors(), (req, res) => {
         // filter out empty objects
         output = output.filter((value) => Object.keys(value).length !== 0);
         output = JSON.stringify(output);
-        client.set(key, output);
+        redisClient.set(key, output);
         // show JSON array
         res.send(output);
       }
@@ -139,7 +130,7 @@ app.get('/api/', cors(), (req, res) => {
           new Promise((resolve, reject) =>
             request.get(
               {
-                url: 'https://apod.nasa.gov/apod/ap' + date.joined + '.html',
+                url: "https://apod.nasa.gov/apod/ap" + date.joined + ".html",
                 encoding: null,
               },
               async function (error, response, body) {
@@ -175,9 +166,9 @@ app.get('/api/', cors(), (req, res) => {
   if (date === undefined) {
     if (startdate !== undefined && enddate !== undefined) {
       if (dates.getDate(startdate) > dates.getDate(enddate)) {
-        throwError('start_date cannot be later than end_date', 404);
-      } else if (dates.getDate(startdate) < dates.getDate('1995-06-16')) {
-        throwError('start_date cannot be later than end_date', 404);
+        throwError("start_date cannot be later than end_date", 404);
+      } else if (dates.getDate(startdate) < dates.getDate("1995-06-16")) {
+        throwError("start_date cannot be later than end_date", 404);
       } else {
         // get list of APODs between start_date and end_date
         getAPODs();
@@ -186,79 +177,83 @@ app.get('/api/', cors(), (req, res) => {
       if (count > 0) {
         getCount(count);
       } else {
-        throwError('count must be larger than 0', 400);
+        throwError("count must be larger than 0", 400);
       }
     } else {
       // get the APOD for today
-      let url = 'https://apod.nasa.gov/apod/astropix.html';
-      client.get(key, function (err, data) {
+      let url = "https://apod.nasa.gov/apod/astropix.html";
+      redisClient.get(key, function (err, data) {
         if (data) {
           const $ = cheerio.load(data);
           show($, date);
         } else {
-          request.get({ url: url, encoding: null }, function (
-            error,
-            response,
-            body
-          ) {
-            if (response) {
-              if (response.statusCode === 200) {
-                body = iconv.decode(body, encoding);
-                const $ = cheerio.load(body);
-                client.setex(key, 60 * 30, body);
+          request.get(
+            { url: url, encoding: null },
+            function (error, response, body) {
+              if (response) {
+                if (response.statusCode === 200) {
+                  body = iconv.decode(body, encoding);
+                  const $ = cheerio.load(body);
+                  redisClient.setex(key, 60 * 30, body);
 
-                show($, date);
+                  show($, date);
+                } else {
+                  throwError(
+                    "An error happened while requesting the APOD.",
+                    404
+                  );
+                }
               } else {
-                throwError('An error happened while requesting the APOD.', 404);
+                throwError("An error happened while requesting the APOD.", 404);
               }
-            } else {
-              throwError('An error happened while requesting the APOD.', 404);
             }
-          });
+          );
         }
       });
     }
   } else {
     // if date is after the first APOD, parse the APOD, otherwise throw error
-    if (dates.getDate(date) >= dates.getDate('1995-06-16')) {
+    if (dates.getDate(date) >= dates.getDate("1995-06-16")) {
       let url =
-        'https://apod.nasa.gov/apod/ap' +
+        "https://apod.nasa.gov/apod/ap" +
         dates.getDate(date).substring(2) +
-        '.html';
-      client.get(key, function (err, data) {
+        ".html";
+      redisClient.get(key, function (err, data) {
         if (data) {
           const $ = cheerio.load(data);
           show($, date);
         } else {
-          request.get({ url: url, encoding: null }, function (
-            error,
-            response,
-            body
-          ) {
-            if (response) {
-              if (response.statusCode === 200) {
-                body = iconv.decode(body, encoding);
-                const $ = cheerio.load(body);
-                client.set(key, body);
+          request.get(
+            { url: url, encoding: null },
+            function (error, response, body) {
+              if (response) {
+                if (response.statusCode === 200) {
+                  body = iconv.decode(body, encoding);
+                  const $ = cheerio.load(body);
+                  redisClient.set(key, body);
 
-                show($, date);
+                  show($, date);
+                } else {
+                  throwError(
+                    "An error happened while requesting the APOD.",
+                    404
+                  );
+                }
               } else {
-                throwError('An error happened while requesting the APOD.', 404);
+                throwError("An error happened while requesting the APOD.", 404);
               }
-            } else {
-              throwError('An error happened while requesting the APOD.', 404);
             }
-          });
+          );
         }
       });
     } else {
-      throwError('`date` cannot be before the first APOD (June 16, 1995)', 404);
+      throwError("`date` cannot be before the first APOD (June 16, 1995)", 404);
     }
   }
 });
 
 // search endpoint
-app.get('/search/', cors(), (req, res) => {
+app.get("/search/", cors(), (req, res) => {
   const html_tags = req.query.html_tags;
   const thumbs = req.query.thumbs;
   const image_thumbnail_size = req.query.image_thumbnail_size;
@@ -295,91 +290,90 @@ app.get('/search/', cors(), (req, res) => {
   }
 
   if (query !== undefined) {
-    res.setHeader('Content-Type', 'application/json');
-    let url = 'https://apod.nasa.gov/cgi-bin/apod/apod_search?tquery=' + query;
+    res.setHeader("Content-Type", "application/json");
+    let url = "https://apod.nasa.gov/cgi-bin/apod/apod_search?tquery=" + query;
 
-    client.get(key, async function (err, data) {
+    redisClient.get(key, async function (err, data) {
       if (data) {
         const $ = cheerio.load(data);
         show($);
       } else {
-        request.get({ url: url, encoding: null }, async function (
-          error,
-          response,
-          body
-        ) {
-          if (error) {
-            res.status(500);
-            res.send(
-              JSON.stringify({
-                error: 'An error happened while requesting APOD website.',
-              })
-            );
-          } else if (response) {
-            if (response.statusCode === 200) {
-              body = iconv.decode(body, encoding);
-              client.setex(key, 60 * 30, body);
-              const $ = cheerio.load(body);
-              show($);
+        request.get(
+          { url: url, encoding: null },
+          async function (error, response, body) {
+            if (error) {
+              res.status(500);
+              res.send(
+                JSON.stringify({
+                  error: "An error happened while requesting APOD website.",
+                })
+              );
+            } else if (response) {
+              if (response.statusCode === 200) {
+                body = iconv.decode(body, encoding);
+                redisClient.setex(key, 60 * 30, body);
+                const $ = cheerio.load(body);
+                show($);
+              } else {
+                res.status(500);
+                res.send(
+                  JSON.stringify({
+                    error: "An error happened while requesting APOD website.",
+                  })
+                );
+              }
             } else {
               res.status(500);
               res.send(
                 JSON.stringify({
-                  error: 'An error happened while requesting APOD website.',
+                  error: "An error happened while requesting APOD website.",
                 })
               );
             }
-          } else {
-            res.status(500);
-            res.send(
-              JSON.stringify({
-                error: 'An error happened while requesting APOD website.',
-              })
-            );
           }
-        });
+        );
       }
     });
   } else {
-    res.sendFile(path.join(__dirname + '/static/search.html'));
+    res.sendFile(path.join(__dirname + "/static/search.html"));
   }
 });
 
 // image resize endpoint
-app.get('/image/', cors(), (req, res) => {
+app.get("/image/", cors(), (req, res) => {
   if (Object.keys(req.query).length === 0) {
-    res.setHeader('Content-Type', 'application/json');
+    res.setHeader("Content-Type", "application/json");
     res.status(400);
-    res.send(JSON.stringify({ error: 'Please specify a path to APOD image' }));
+    res.send(JSON.stringify({ error: "Please specify a path to APOD image" }));
   } else {
     const width = req.query.width;
     const image = req.query.image;
     if (width > 0 && image !== undefined) {
       res.type('image/"jpg"');
-      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader("Content-Type", "image/jpeg");
       // resize image if width and path are valid
       if (
-        image.includes('youtu.be') ||
-        image.includes('youtube') ||
-        image.includes('vimeo') ||
-        image.includes('apod.nasa.gov')
+        image.includes("youtu.be") ||
+        image.includes("youtube") ||
+        image.includes("vimeo") ||
+        image.includes("apod.nasa.gov")
       ) {
         resize(image, parseInt(width)).pipe(res);
       } else {
-        res.setHeader('Content-Type', 'application/json');
+        res.setHeader("Content-Type", "application/json");
         res.status(400);
         res.send(
           JSON.stringify({
             error:
-              'Image path cannot be other than official NASA APOD website, YouTube thumbnail or Vimeo thumbnail.',
+              "Image path cannot be other than official NASA APOD website, YouTube thumbnail or Vimeo thumbnail.",
           })
         );
       }
     } else {
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader("Content-Type", "application/json");
       res.status(400);
       res.send(
-        JSON.stringify({ error: 'Please specify valid width and image path' })
+        JSON.stringify({ error: "Please specify valid width and image path" })
       );
     }
   }
