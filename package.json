@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -12,10 +12,11 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "cheerio-advanced-selectors": "^2.0.1",
+    "cors": "^2.8.5",
     "express": "^4.16.4",
     "iconv-lite": "^0.4.24",
-    "request": "^2.88.0",
-    "sharp": "^0.21.0"
+    "redis": "^2.8.0",
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "eslint": "^5.15.1"
